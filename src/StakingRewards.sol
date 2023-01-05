@@ -5,7 +5,7 @@ pragma solidity ^0.7.6;
 import "./interfaces/SafeERC20.sol";
 import "./libraries/SafeMath.sol";
 import "./libraries/Math.sol";
-import "openzeppelin/contracts/security/ReentrancyGuard.sol";
+import "openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
 
 abstract contract RewardsDistributionRecipient {
