@@ -47,7 +47,13 @@ contract StakingRewardsFactory is Ownable {
         StakingRewardsInfo storage info = stakingRewardsInfoByStakingToken[stakingToken];
         require(info.stakingRewards == address(0), 'StakingRewardsFactory::deploy: already deployed');
 
-        info.stakingRewards = address(new StakingRewards(/*_rewardsDistribution=*/ address(this), rewardsToken, stakingToken));
+        address stakingRewardContract = address(
+            new StakingRewards{
+                salt:keccak256(abi.encodePacked(rewardsToken,stakingToken))
+            }(address(this),rewardsToken,stakingToken)
+        );
+
+        info.stakingRewards = stakingRewardContract;
         info.rewardAmount = rewardAmount;
         info.duration = rewardsDuration;
         stakingTokens.push(stakingToken);
