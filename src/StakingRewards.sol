@@ -70,7 +70,7 @@ contract StakingRewards is IStakingRewards, RewardsDistributionRecipient, Reentr
     /* ========== MUTATIVE FUNCTIONS ========== */
 
     function stakeWithPermit(uint256 amount, uint deadline, uint8 v, bytes32 r, bytes32 s) external nonReentrant updateReward(msg.sender) {
-        require(amount > 0, "Cannot stake 0");
+        require(amount > 0, "CSZ");
         _totalSupply = _totalSupply.add(amount);
         _balances[msg.sender] = _balances[msg.sender].add(amount);
 
@@ -82,7 +82,7 @@ contract StakingRewards is IStakingRewards, RewardsDistributionRecipient, Reentr
     }
 
     function stake(uint256 amount) external override  nonReentrant updateReward(msg.sender) {
-        require(amount > 0, "Cannot stake 0");
+        require(amount > 0, "CSZ");
         _totalSupply = _totalSupply.add(amount);
         _balances[msg.sender] = _balances[msg.sender].add(amount);
         stakingToken.safeTransferFrom(msg.sender, address(this), amount);
@@ -90,7 +90,7 @@ contract StakingRewards is IStakingRewards, RewardsDistributionRecipient, Reentr
     }
 
     function withdraw(uint256 amount) public override nonReentrant updateReward(msg.sender) {
-        require(amount > 0, "Cannot withdraw 0");
+        require(amount > 0, "CWZ");
         _totalSupply = _totalSupply.sub(amount);
         _balances[msg.sender] = _balances[msg.sender].sub(amount);
         stakingToken.safeTransfer(msg.sender, amount);
@@ -114,7 +114,7 @@ contract StakingRewards is IStakingRewards, RewardsDistributionRecipient, Reentr
     /* ========== RESTRICTED FUNCTIONS ========== */
 
     function notifyRewardAmount(uint256 reward, uint256 rewardsDuration) external override onlyRewardsDistribution updateReward(address(0)) {
-        require(block.timestamp.add(rewardsDuration) >= periodFinish, "Cannot reduce existing period");
+        require(block.timestamp.add(rewardsDuration) >= periodFinish, "CRP");
 
         if (block.timestamp >= periodFinish) {
             rewardRate = reward.div(rewardsDuration);
@@ -129,7 +129,7 @@ contract StakingRewards is IStakingRewards, RewardsDistributionRecipient, Reentr
         // very high values of rewardRate in the earned and rewardsPerToken functions;
         // Reward + leftover must be less than 2^256 / 10^18 to avoid overflow.
         uint balance = rewardsToken.balanceOf(address(this));
-        require(rewardRate <= balance.div(rewardsDuration), "Provided reward too high");
+        require(rewardRate <= balance.div(rewardsDuration), "RTH");
 
         lastUpdateTime = block.timestamp;
         periodFinish = block.timestamp.add(rewardsDuration);
