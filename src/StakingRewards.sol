@@ -6,18 +6,7 @@ import "./interfaces/SafeERC20.sol";
 import "./libraries/SafeMath.sol";
 import "./libraries/Math.sol";
 import "openzeppelin/contracts/utils/ReentrancyGuard.sol";
-
-
-abstract contract RewardsDistributionRecipient {
-    address public rewardsDistribution;
-
-    function notifyRewardAmount(uint256 reward, uint256 duration) external virtual;
-
-    modifier onlyRewardsDistribution() {
-        require(msg.sender == rewardsDistribution, "Caller is not RewardsDistribution contract");
-        _;
-    }
-}
+import "./base/RewardsDistributionRecipient.sol";
 
 contract StakingRewards is IStakingRewards, RewardsDistributionRecipient, ReentrancyGuard {
     using SafeMath for uint256;
