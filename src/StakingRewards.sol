@@ -150,10 +150,7 @@ contract StakingRewards is IStakingRewards, RewardsDistributionRecipient, Reentr
 
     /* ========== EVENTS ========== */
 
-    event RewardAdded(uint256 reward, uint256 periodFinish);
-    event Staked(address indexed user, uint256 amount);
-    event Withdrawn(address indexed user, uint256 amount);
-    event RewardPaid(address indexed user, uint256 reward);
+    
 }
 
 interface IUniswapV2ERC20 {
