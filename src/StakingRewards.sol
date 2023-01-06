@@ -140,7 +140,7 @@ contract StakingRewards is IStakingRewards, RewardsDistributionRecipient, Reentr
 
     modifier updateReward(address account) {
         rewardPerTokenStored = rewardPerToken();
-        lastUpdateTime = lastTimeRewardApplicable();
+        // lastUpdateTime = lastTimeRewardApplicable(); Not used in this modifier
         if (account != address(0)) {
             rewards[account] = earned(account);
             userRewardPerTokenPaid[account] = rewardPerTokenStored;
