@@ -1,20 +1,17 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.7.6;
 
-
-import "./interfaces/SafeERC20.sol";
-import "./libraries/SafeMath.sol";
-import "./libraries/Math.sol";
-import "openzeppelin/contracts/utils/ReentrancyGuard.sol";
-import "openzeppelin/contracts/access/Ownable.sol";
+// import "./interfaces/SafeERC20.sol";
+// import "./libraries/SafeMath.sol";
+// import "./libraries/Math.sol";
+import "openzeppelin-contracts/contracts/utils/ReentrancyGuard.sol";
+import "openzeppelin-contracts/contracts/access/Ownable.sol";
 import "./StakingRewards.sol";
-
-
 
 contract StakingRewardsFactory is Ownable {
     // immutables
     address public rewardsToken;
-    uint public stakingRewardsGenesis;
+    uint256 public stakingRewardsGenesis;
 
     // the staking tokens for which the rewards contract has been deployed
     address[] public stakingTokens;
@@ -22,18 +19,19 @@ contract StakingRewardsFactory is Ownable {
     // info about rewards for a particular staking token
     struct StakingRewardsInfo {
         address stakingRewards;
-        uint rewardAmount;
-        uint duration;
+        uint256 rewardAmount;
+        uint256 duration;
     }
 
     // rewards info by staking token
-    mapping(address => StakingRewardsInfo) public stakingRewardsInfoByStakingToken;
+    mapping(address => StakingRewardsInfo)
+        public stakingRewardsInfoByStakingToken;
 
-    constructor(
-        address _rewardsToken,
-        uint _stakingRewardsGenesis
-    ) Ownable() public {
-        require(_stakingRewardsGenesis >= block.timestamp, 'GTS');
+    constructor(address _rewardsToken, uint256 _stakingRewardsGenesis)
+        public
+        Ownable()
+    {
+        require(_stakingRewardsGenesis >= block.timestamp, "GTS");
 
         rewardsToken = _rewardsToken;
         stakingRewardsGenesis = _stakingRewardsGenesis;
@@ -43,14 +41,20 @@ contract StakingRewardsFactory is Ownable {
 
     // deploy a staking reward contract for the staking token, and store the reward amount
     // the reward will be distributed to the staking reward contract no sooner than the genesis
-    function deploy(address stakingToken, uint rewardAmount, uint256 rewardsDuration) public onlyOwner {
-        StakingRewardsInfo storage info = stakingRewardsInfoByStakingToken[stakingToken];
-        require(info.stakingRewards == address(0), 'AD');
+    function deploy(
+        address stakingToken,
+        uint256 rewardAmount,
+        uint256 rewardsDuration
+    ) public onlyOwner {
+        StakingRewardsInfo storage info = stakingRewardsInfoByStakingToken[
+            stakingToken
+        ];
+        require(info.stakingRewards == address(0), "AD");
 
         address stakingRewardContract = address(
             new StakingRewards{
-                salt:keccak256(abi.encodePacked(rewardsToken,stakingToken))
-            }(address(this),rewardsToken,stakingToken)
+                salt: keccak256(abi.encodePacked(rewardsToken, stakingToken))
+            }(address(this), rewardsToken, stakingToken)
         );
 
         info.stakingRewards = stakingRewardContract;
@@ -59,22 +63,26 @@ contract StakingRewardsFactory is Ownable {
         stakingTokens.push(stakingToken);
     }
 
-    function update(address stakingToken, uint rewardAmount, uint256 rewardsDuration) public onlyOwner {
-        StakingRewardsInfo storage info = stakingRewardsInfoByStakingToken[stakingToken];
-        require(info.stakingRewards != address(0), 'UND');
+    function update(
+        address stakingToken,
+        uint256 rewardAmount,
+        uint256 rewardsDuration
+    ) public onlyOwner {
+        StakingRewardsInfo storage info = stakingRewardsInfoByStakingToken[
+            stakingToken
+        ];
+        require(info.stakingRewards != address(0), "UND");
 
         info.rewardAmount = rewardAmount;
         info.duration = rewardsDuration;
     }
 
-
-
     ///// permissionless functions
 
     // call notifyRewardAmount for all staking tokens.
     function notifyRewardAmounts() public {
-        require(stakingTokens.length > 0, 'CBD');
-        for (uint i = 0; i < stakingTokens.length; i++) {
+        require(stakingTokens.length > 0, "CBD");
+        for (uint256 i = 0; i < stakingTokens.length; i++) {
             notifyRewardAmount(stakingTokens[i]);
         }
     }
@@ -82,22 +90,30 @@ contract StakingRewardsFactory is Ownable {
     // notify reward amount for an individual staking token.
     // this is a fallback in case the notifyRewardAmounts costs too much gas to call for all contracts
     function notifyRewardAmount(address stakingToken) public {
-        require(block.timestamp >= stakingRewardsGenesis, 'NNR');
+        require(block.timestamp >= stakingRewardsGenesis, "NNR");
 
-        StakingRewardsInfo storage info = stakingRewardsInfoByStakingToken[stakingToken];
-        require(info.stakingRewards != address(0), 'NND');
+        StakingRewardsInfo storage info = stakingRewardsInfoByStakingToken[
+            stakingToken
+        ];
+        require(info.stakingRewards != address(0), "NND");
 
         if (info.rewardAmount > 0 && info.duration > 0) {
-            uint rewardAmount = info.rewardAmount;
+            uint256 rewardAmount = info.rewardAmount;
             uint256 duration = info.duration;
             info.rewardAmount = 0;
             info.duration = 0;
 
             require(
-                IERC20(rewardsToken).transfer(info.stakingRewards, rewardAmount),
-                'TF'
+                IERC20(rewardsToken).transfer(
+                    info.stakingRewards,
+                    rewardAmount
+                ),
+                "TF"
             );
-            StakingRewards(info.stakingRewards).notifyRewardAmount(rewardAmount, duration);
+            StakingRewards(info.stakingRewards).notifyRewardAmount(
+                rewardAmount,
+                duration
+            );
         }
     }
 
