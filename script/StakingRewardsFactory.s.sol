@@ -6,13 +6,16 @@ import "../src/StakingRewardsFactory.sol";
 
 contract DeployStakingRewardsFactoryScript is Script {
     address rewardsToken = 0x4fC1263815Ab1E8fD97EC5010A7B4694dA6F593F;
-    uint stakingRewardsGenesis = block.timestamp + 15 minutes;
+    uint256 stakingRewardsGenesis = block.timestamp + 15 minutes;
 
     function run() external {
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
         vm.startBroadcast(deployerPrivateKey);
 
-        StakingRewardsFactory stakingRewardsFactory = new StakingRewardsFactory(rewardsToken, stakingRewardsGenesis);
+        StakingRewardsFactory stakingRewardsFactory = new StakingRewardsFactory(
+            rewardsToken,
+            stakingRewardsGenesis
+        );
         vm.stopBroadcast();
     }
 }
