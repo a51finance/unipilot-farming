@@ -48,4 +48,30 @@ contract StakingRewardsFactoryTest is Test {
             revert("Transfer Failed");
         }
     }
+
+    function testCannotDeployWithZeroAddress() public {
+        hevm.warp(block.timestamp + 10);
+        stakingRewardsFactory.deploy(
+            address(stakingToken),
+            100e18,
+            block.timestamp + 2 days
+        );
+        hevm.expectRevert(bytes("AD"));
+        stakingRewardsFactory.deploy(
+            address(stakingToken),
+            100e18,
+            block.timestamp + 2 days
+        );
+    }
+
+    function testCannotDeployStakingRewardsContract() public {
+        stakingRewardsFactory.deploy(
+            address(stakingToken),
+            100e18,
+            block.timestamp + 2 days
+        );
+        rewardToken.transfer(address(stakingRewardsFactory), 100e18);
+        hevm.expectRevert(bytes("NNR"));
+        stakingRewardsFactory.notifyRewardAmounts();
+    }
 }
