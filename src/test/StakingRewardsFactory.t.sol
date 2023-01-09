@@ -15,6 +15,25 @@ contract StakingRewardsFactoryTest is Test {
     MockERC20 public rewardToken;
     uint256 stakeAmount = 10e18;
 
+    function deployStakingContract(
+        address _stakingToken,
+        uint256 _amount,
+        uint256 _duration
+    ) internal {
+        hevm.warp(block.timestamp + 10);
+        stakingRewardsFactory.deploy(_stakingToken, _amount, _duration);
+
+        bool success = rewardToken.transfer(
+            address(stakingRewardsFactory),
+            _amount
+        );
+        if (success) {
+            stakingRewardsFactory.notifyRewardAmounts();
+        } else {
+            revert("Transfer Failed");
+        }
+    }
+
     function setUp() public {
         stakingToken = new MockERC20("Token Test Staking", "TTS");
         rewardToken = new MockERC20("Token Test Reward", "TTR");
@@ -32,7 +51,8 @@ contract StakingRewardsFactoryTest is Test {
 
     function testDeployStakingRewardsContract() public {
         hevm.warp(block.timestamp + 10);
-        stakingRewardsFactory.deploy(
+
+        deployStakingContract(
             address(stakingToken),
             100e18,
             block.timestamp + 2 days
@@ -51,20 +71,74 @@ contract StakingRewardsFactoryTest is Test {
 
     function testCannotDeployWithZeroAddress() public {
         hevm.warp(block.timestamp + 10);
-        stakingRewardsFactory.deploy(
+
+        deployStakingContract(
             address(stakingToken),
             100e18,
             block.timestamp + 2 days
         );
+
         hevm.expectRevert(bytes("AD"));
-        stakingRewardsFactory.deploy(
+        deployStakingContract(
             address(stakingToken),
             100e18,
             block.timestamp + 2 days
         );
     }
 
-    function testCannotDeployStakingRewardsContract() public {
+    // Update function
+
+    function testUpdateStakingContract() public {
+        deployStakingContract(
+            address(stakingToken),
+            100e18,
+            block.timestamp + 2 days
+        );
+
+        hevm.warp(block.timestamp + 1 days);
+        uint256 futureDuration = block.timestamp + 5 days;
+        stakingRewardsFactory.update(
+            address(stakingToken),
+            100e18,
+            futureDuration
+        );
+        (, , uint256 duration) = stakingRewardsFactory
+            .stakingRewardsInfoByStakingToken(address(stakingToken));
+        assertEq(duration, futureDuration);
+    }
+
+    function testCannotUpdateStakingContract() public {
+        hevm.warp(block.timestamp + 1 days);
+        uint256 futureDuration = block.timestamp + 5 days;
+        hevm.expectRevert(bytes("UND"));
+        stakingRewardsFactory.update(
+            address(stakingToken),
+            100e18,
+            futureDuration
+        );
+    }
+
+    // NotifyRewardAmounts function
+
+    function testNotifyRewardAmounts() public {
+        for (uint256 i = 0; i < 5; i++) {
+            stakingToken = new MockERC20("Token Test Staking", "TTS");
+            deployStakingContract(
+                address(stakingToken),
+                10e18,
+                block.timestamp + 2 days
+            );
+        }
+        stakingRewardsFactory.notifyRewardAmounts();
+    }
+
+    function testCannotNotifyRewardAmounts() public {
+        hevm.expectRevert(bytes("CBD"));
+        stakingRewardsFactory.notifyRewardAmounts();
+    }
+
+    // notifyRewardAmount function
+    function testCannotTestNotifyRewardAmount() public {
         stakingRewardsFactory.deploy(
             address(stakingToken),
             100e18,
