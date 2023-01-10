@@ -85,4 +85,17 @@ contract StakingRewardsTest is Test {
             StakingRewards(stakingContract).stake(_stakeAmount);
         }
     }
+
+    // Fuzz testing stake function
+    function testStakeFuzz(uint128 _amount) public {
+        stakingToken.approve(stakingContract, _amount);
+        if (_amount > 0) {
+            hevm.expectEmit(true, false, false, false);
+            emit Staked(address(this), _amount);
+            StakingRewards(stakingContract).stake(_amount);
+        } else {
+            hevm.expectRevert(bytes("CSZ"));
+            StakingRewards(stakingContract).stake(_amount);
+        }
+    }
 }
