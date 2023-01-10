@@ -98,4 +98,20 @@ contract StakingRewardsTest is Test {
             StakingRewards(stakingContract).stake(_amount);
         }
     }
+
+    // Withdraw Function
+    function testCannotWithdrawZero() public {
+        hevm.expectRevert(bytes("CWZ"));
+        StakingRewards(stakingContract).withdraw(0);
+    }
+
+    function testWithdraw() public {
+        stakeToken(10e18);
+        hevm.expectEmit(true, false, false, false);
+        uint256 withdrawAmount = StakingRewards(stakingContract).balanceOf(
+            address(this)
+        );
+        emit Withdrawn(address(this), 10e18);
+        StakingRewards(stakingContract).withdraw(withdrawAmount);
+    }
 }
