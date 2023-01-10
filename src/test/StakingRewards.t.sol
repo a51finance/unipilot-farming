@@ -114,4 +114,14 @@ contract StakingRewardsTest is Test {
         emit Withdrawn(address(this), 10e18);
         StakingRewards(stakingContract).withdraw(withdrawAmount);
     }
+
+    // Total Supply
+
+    function testTotalSupply() public {
+        for (uint256 i = 1; i < 10; i++) {
+            stakeToken(10e18);
+        }
+        uint256 totalSupply = StakingRewards(stakingContract).totalSupply();
+        assertEq(totalSupply, 10e18 * 9);
+    }
 }
