@@ -4,8 +4,9 @@ pragma solidity ^0.7.6;
 import "openzeppelin-contracts/contracts/utils/ReentrancyGuard.sol";
 import "openzeppelin-contracts/contracts/access/Ownable.sol";
 import "./StakingRewards.sol";
+import "./interfaces/IStakingRewardsFactory.sol";
 
-contract StakingRewardsFactory is Ownable {
+contract StakingRewardsFactory is Ownable, IStakingRewardsFactory {
     // immutables
     address public rewardsToken;
     uint256 public stakingRewardsGenesis;
@@ -58,6 +59,7 @@ contract StakingRewardsFactory is Ownable {
         info.rewardAmount = rewardAmount;
         info.duration = rewardsDuration;
         stakingTokens.push(stakingToken);
+        emit Deployed(stakingRewardContract, rewardAmount, rewardsDuration);
     }
 
     function update(
@@ -72,6 +74,8 @@ contract StakingRewardsFactory is Ownable {
 
         info.rewardAmount = rewardAmount;
         info.duration = rewardsDuration;
+
+        emit Updated(stakingToken, rewardAmount, rewardsDuration);
     }
 
     ///// permissionless functions
