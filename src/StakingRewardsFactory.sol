@@ -29,6 +29,7 @@ contract StakingRewardsFactory is Ownable, IStakingRewardsFactory {
         public
         Ownable()
     {
+        require(_rewardsToken != address(0), "IA");
         require(_stakingRewardsGenesis >= block.timestamp, "GTS");
 
         rewardsToken = _rewardsToken;
@@ -59,7 +60,12 @@ contract StakingRewardsFactory is Ownable, IStakingRewardsFactory {
         info.rewardAmount = rewardAmount;
         info.duration = rewardsDuration;
         stakingTokens.push(stakingToken);
-        emit Deployed(stakingRewardContract, rewardAmount, rewardsDuration);
+        emit Deployed(
+            stakingRewardContract,
+            stakingToken,
+            rewardAmount,
+            rewardsDuration
+        );
     }
 
     function update(

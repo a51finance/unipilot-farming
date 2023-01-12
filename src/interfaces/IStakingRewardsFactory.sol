@@ -4,6 +4,7 @@ pragma solidity >=0.7.6;
 interface IStakingRewardsFactory {
     event Deployed(
         address indexed stakingRewardContract,
+        address stakingToken,
         uint256 rewardAmount,
         uint256 rewardsDuration
     );
