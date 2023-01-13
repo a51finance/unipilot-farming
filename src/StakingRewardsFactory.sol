@@ -8,7 +8,6 @@ import "./interfaces/IStakingRewardsFactory.sol";
 
 contract StakingRewardsFactory is Ownable, IStakingRewardsFactory {
     // immutables
-    address internal rewardsToken;
     uint256 public stakingRewardsGenesis;
 
     // the staking tokens for which the rewards contract has been deployed
@@ -45,24 +44,23 @@ contract StakingRewardsFactory is Ownable, IStakingRewardsFactory {
         StakingRewardsInfo storage info = stakingRewardsInfoByStakingToken[
             stakingToken
         ];
-        require(rewardsToken != address(0) || stakingToken != address(0), "IA");
+        require(rewardToken != address(0) && stakingToken != address(0), "IA");
         require(info.stakingRewards == address(0), "AD");
-        rewardsToken = rewardToken;
         address stakingRewardContract = address(
             new StakingRewards{
-                salt: keccak256(abi.encodePacked(rewardsToken, stakingToken))
-            }(address(this), rewardsToken, stakingToken)
+                salt: keccak256(abi.encodePacked(rewardToken, stakingToken))
+            }(address(this), rewardToken, stakingToken)
         );
 
         info.stakingRewards = stakingRewardContract;
-        info.rewardToken = rewardsToken;
+        info.rewardToken = rewardToken;
         info.rewardAmount = rewardAmount;
         info.duration = rewardsDuration;
         stakingTokens.push(stakingToken);
         emit Deployed(
             stakingRewardContract,
             stakingToken,
-            rewardsToken,
+            rewardToken,
             rewardAmount,
             rewardsDuration
         );
@@ -111,7 +109,7 @@ contract StakingRewardsFactory is Ownable, IStakingRewardsFactory {
             info.duration = 0;
 
             require(
-                IERC20(rewardsToken).transfer(
+                IERC20(info.rewardToken).transfer(
                     info.stakingRewards,
                     rewardAmount
                 ),
