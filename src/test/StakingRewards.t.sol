@@ -19,6 +19,7 @@ contract StakingRewardsTest is Test {
     MockERC20 public stakingToken;
     MockERC20 public rewardToken;
     uint256 stakeAmount = 10e18;
+    uint256 initialTime;
 
     function deployStakingContract(
         address _stakingToken,
@@ -54,11 +55,11 @@ contract StakingRewardsTest is Test {
             address(rewardToken),
             block.timestamp + 1
         );
-
+        initialTime = block.timestamp + 10;
         deployStakingContract(
             address(stakingToken),
             100e18,
-            block.timestamp + 10 days
+            block.timestamp + 10
         );
     }
 
@@ -124,4 +125,59 @@ contract StakingRewardsTest is Test {
         uint256 totalSupply = StakingRewards(stakingContract).totalSupply();
         assertEq(totalSupply, 10e18 * 9);
     }
+
+    function testValuesBeforeFirstStake() public {
+        /**
+         *  rewardRate = reward Amount / reward Duration
+         *  rewardRate = 100e18 /  initialTime (initialTime is block.timestamp + 10 days)
+         */
+        assertEq(
+            StakingRewards(stakingContract).rewardRate(),
+            100e18 / initialTime
+        );
+        /**
+         *  lastUpdateTime = block.timestamp
+         */
+        console.log(
+            StakingRewards(stakingContract).lastUpdateTime(),
+            block.timestamp
+        );
+        // assertEq(StakingRewards(stakingContract).lastUpdateTime(), block.timestamp);
+    }
+
+    // reward per token
+
+    // function testCalculateRewardPerToken() public returns (uint256) {
+    //     uint256 totalSupply = StakingRewards(stakingContract).totalSupply();
+    //     if (totalSupply == 0) {
+    //         // Since there isn't any stake yet the totalSupply will be 0
+    //         assertEq(StakingRewards(stakingContract).totalSupply(), 0);
+    //         return 0;
+    //     }
+    //     (, , uint256 rewardsDuration) = stakingRewardsFactory
+    //         .stakingRewardsInfoByStakingToken(address(stakingToken));
+    //     uint256 rewardRate = 100e18 / rewardsDuration;
+    //     uint256 _rewardPerTokenStored = StakingRewards(stakingContract)
+    //         .rewardPerTokenStored();
+    //     uint256 _lastTimeRewardApplicable = StakingRewards(stakingContract)
+    //         .lastTimeRewardApplicable();
+    //     uint256 _lastUpdateTime = StakingRewards(stakingContract)
+    //         .lastUpdateTime();
+    //     //  assertEq(StakingRewards(stakingContract).totalSupply(), 0);
+    //     return
+    //         _rewardPerTokenStored +
+    //         (((_lastTimeRewardApplicable - _lastUpdateTime) *
+    //             rewardRate *
+    //             1e18) / totalSupply);
+    // }
+
+    // function testRewardPerTokenZeroSupply() public {
+    //     assertEq(calculateRewardPerToken(), 0);
+    // }
+
+    // function testRewardPerToken() public {
+    //     stakeToken(10e18);
+
+    //     // assertEq(calculateRewardPerToken(), 0);
+    // }
 }
