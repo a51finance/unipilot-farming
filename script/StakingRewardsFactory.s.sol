@@ -13,7 +13,6 @@ contract DeployStakingRewardsFactoryScript is Script {
         vm.startBroadcast(deployerPrivateKey);
 
         StakingRewardsFactory stakingRewardsFactory = new StakingRewardsFactory(
-            rewardsToken,
             stakingRewardsGenesis
         );
         vm.stopBroadcast();
