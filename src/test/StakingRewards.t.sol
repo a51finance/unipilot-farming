@@ -23,11 +23,17 @@ contract StakingRewardsTest is Test {
 
     function deployStakingContract(
         address _stakingToken,
+        address _rewardToken,
         uint256 _amount,
         uint256 _duration
     ) internal {
         hevm.warp(block.timestamp + 10);
-        stakingRewardsFactory.deploy(_stakingToken, _amount, _duration);
+        stakingRewardsFactory.deploy(
+            _stakingToken,
+            _rewardToken,
+            _amount,
+            _duration
+        );
 
         bool success = rewardToken.transfer(
             address(stakingRewardsFactory),
@@ -39,7 +45,7 @@ contract StakingRewardsTest is Test {
             revert("Transfer Failed");
         }
 
-        (stakingContract, , ) = stakingRewardsFactory
+        (stakingContract, , , ) = stakingRewardsFactory
             .stakingRewardsInfoByStakingToken(address(stakingToken));
     }
 
@@ -51,13 +57,11 @@ contract StakingRewardsTest is Test {
     function setUp() public {
         stakingToken = new MockERC20("Token Test Staking", "TTS");
         rewardToken = new MockERC20("Token Test Reward", "TTR");
-        stakingRewardsFactory = new StakingRewardsFactory(
-            address(rewardToken),
-            block.timestamp + 1
-        );
+        stakingRewardsFactory = new StakingRewardsFactory(block.timestamp + 1);
         initialTime = block.timestamp + 10;
         deployStakingContract(
             address(stakingToken),
+            address(rewardToken),
             100e18,
             block.timestamp + 10
         );
