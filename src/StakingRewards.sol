@@ -185,7 +185,7 @@ contract StakingRewards is
 
     modifier updateReward(address account) {
         rewardPerTokenStored = rewardPerToken();
-        // lastUpdateTime = lastTimeRewardApplicable(); Not used in this modifier
+        lastUpdateTime = lastTimeRewardApplicable();
         if (account != address(0)) {
             rewards[account] = earned(account);
             userRewardPerTokenPaid[account] = rewardPerTokenStored;
