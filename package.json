@@ -7,9 +7,9 @@
     "test": "test"
   },
   "scripts": {
-    "test": "hardhat test",
-    "deploy-stakingRewardsFactory": "./bin/deployStakingRewardsFactory.sh",
-    "verify-stakingRewards": "hardhat verify-staking-contract --network"
+    "test": "clear && forge test -vv",
+    "logtest": "clear && forge test -vvvv",
+    "deploy-stakingRewardsFactory": "./bin/deployStakingRewardsFactory.sh"
 
   },
   "author": "Devan Non <devanon@chainstride.capital>",
