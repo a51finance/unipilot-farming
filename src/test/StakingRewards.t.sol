@@ -265,4 +265,17 @@ contract StakingRewardsTest is Test {
             StakingRewards(stakingContract).earned(address(this))
         );
     }
+
+    function testGetReward() public {
+        stakeToken(10e18);
+        hevm.warp(block.timestamp + 1 minutes);
+
+        uint256 expectedReward = StakingRewards(stakingContract).earned(
+            address(this)
+        );
+        uint256 _balanceBefore = rewardToken.balanceOf(address(this));
+        StakingRewards(stakingContract).getReward();
+        uint256 _balanceAfter = rewardToken.balanceOf(address(this));
+        assertEq(expectedReward, _balanceAfter - _balanceBefore);
+    }
 }
