@@ -219,4 +219,50 @@ contract StakingRewardsTest is Test {
             )
         );
     }
+
+    // reward Earned
+
+    function testEarnedValue() public {
+        stakeToken(10e18);
+        hevm.warp(block.timestamp + 1 minutes);
+
+        // _balances[account] will return user's balance
+        // _balances[account] = 10e18
+
+        // userRewardPerTokenPaid will be 0
+        // Since user hasn't claimed any reward yet
+        // userRewardPerTokenPaid = 0
+
+        // rewards[user] will be 0 since its first stake
+        // rewards[user] = 0
+
+        uint256 earnedBeforeRewardClaim = ((10e18 *
+            StakingRewards(stakingContract).rewardPerToken()) / 1e18) + 0;
+
+        assertEq(
+            earnedBeforeRewardClaim,
+            StakingRewards(stakingContract).earned(address(this))
+        );
+
+        // After claiming Reward
+        uint256 previousRewardPerToken = StakingRewards(stakingContract)
+            .rewardPerToken();
+
+        StakingRewards(stakingContract).getReward();
+
+        stakeToken(10e18);
+        stakeToken(20e18);
+        hevm.warp(block.timestamp + 2 minutes);
+
+        uint256 earnedAfterStakesAndClaim = ((10e18 + 20e18 + 10e18) *
+            (StakingRewards(stakingContract).rewardPerToken() -
+                previousRewardPerToken)) /
+            1e18 +
+            0;
+
+        assertEq(
+            earnedAfterStakesAndClaim,
+            StakingRewards(stakingContract).earned(address(this))
+        );
+    }
 }
