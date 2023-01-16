@@ -5,6 +5,7 @@ interface IStakingRewardsFactory {
     event Deployed(
         address indexed stakingRewardContract,
         address stakingToken,
+        address rewardToken,
         uint256 rewardAmount,
         uint256 rewardsDuration
     );

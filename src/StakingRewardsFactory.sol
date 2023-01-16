@@ -8,7 +8,6 @@ import "./interfaces/IStakingRewardsFactory.sol";
 
 contract StakingRewardsFactory is Ownable, IStakingRewardsFactory {
     // immutables
-    address public rewardsToken;
     uint256 public stakingRewardsGenesis;
 
     // the staking tokens for which the rewards contract has been deployed
@@ -17,6 +16,7 @@ contract StakingRewardsFactory is Ownable, IStakingRewardsFactory {
     // info about rewards for a particular staking token
     struct StakingRewardsInfo {
         address stakingRewards;
+        address rewardToken;
         uint256 rewardAmount;
         uint256 duration;
     }
@@ -25,14 +25,9 @@ contract StakingRewardsFactory is Ownable, IStakingRewardsFactory {
     mapping(address => StakingRewardsInfo)
         public stakingRewardsInfoByStakingToken;
 
-    constructor(address _rewardsToken, uint256 _stakingRewardsGenesis)
-        public
-        Ownable()
-    {
-        require(_rewardsToken != address(0), "IA");
+    constructor(uint256 _stakingRewardsGenesis) public Ownable() {
         require(_stakingRewardsGenesis >= block.timestamp, "GTS");
 
-        rewardsToken = _rewardsToken;
         stakingRewardsGenesis = _stakingRewardsGenesis;
     }
 
@@ -42,27 +37,30 @@ contract StakingRewardsFactory is Ownable, IStakingRewardsFactory {
     // the reward will be distributed to the staking reward contract no sooner than the genesis
     function deploy(
         address stakingToken,
+        address rewardToken,
         uint256 rewardAmount,
         uint256 rewardsDuration
     ) public onlyOwner {
         StakingRewardsInfo storage info = stakingRewardsInfoByStakingToken[
             stakingToken
         ];
+        require(rewardToken != address(0) && stakingToken != address(0), "IA");
         require(info.stakingRewards == address(0), "AD");
-
         address stakingRewardContract = address(
             new StakingRewards{
-                salt: keccak256(abi.encodePacked(rewardsToken, stakingToken))
-            }(address(this), rewardsToken, stakingToken)
+                salt: keccak256(abi.encodePacked(rewardToken, stakingToken))
+            }(address(this), rewardToken, stakingToken)
         );
 
         info.stakingRewards = stakingRewardContract;
+        info.rewardToken = rewardToken;
         info.rewardAmount = rewardAmount;
         info.duration = rewardsDuration;
         stakingTokens.push(stakingToken);
         emit Deployed(
             stakingRewardContract,
             stakingToken,
+            rewardToken,
             rewardAmount,
             rewardsDuration
         );
@@ -111,7 +109,7 @@ contract StakingRewardsFactory is Ownable, IStakingRewardsFactory {
             info.duration = 0;
 
             require(
-                IERC20(rewardsToken).transfer(
+                IERC20(info.rewardToken).transfer(
                     info.stakingRewards,
                     rewardAmount
                 ),

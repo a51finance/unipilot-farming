@@ -23,11 +23,17 @@ contract StakingRewardsTest is Test {
 
     function deployStakingContract(
         address _stakingToken,
+        address _rewardToken,
         uint256 _amount,
         uint256 _duration
     ) internal {
         hevm.warp(block.timestamp + 10);
-        stakingRewardsFactory.deploy(_stakingToken, _amount, _duration);
+        stakingRewardsFactory.deploy(
+            _stakingToken,
+            _rewardToken,
+            _amount,
+            _duration
+        );
 
         bool success = rewardToken.transfer(
             address(stakingRewardsFactory),
@@ -39,7 +45,7 @@ contract StakingRewardsTest is Test {
             revert("Transfer Failed");
         }
 
-        (stakingContract, , ) = stakingRewardsFactory
+        (stakingContract, , , ) = stakingRewardsFactory
             .stakingRewardsInfoByStakingToken(address(stakingToken));
     }
 
@@ -51,15 +57,13 @@ contract StakingRewardsTest is Test {
     function setUp() public {
         stakingToken = new MockERC20("Token Test Staking", "TTS");
         rewardToken = new MockERC20("Token Test Reward", "TTR");
-        stakingRewardsFactory = new StakingRewardsFactory(
-            address(rewardToken),
-            block.timestamp + 1
-        );
-        initialTime = block.timestamp + 10;
+        stakingRewardsFactory = new StakingRewardsFactory(block.timestamp + 1);
+        initialTime = block.timestamp + 10 days;
         deployStakingContract(
             address(stakingToken),
+            address(rewardToken),
             100e18,
-            block.timestamp + 10
+            initialTime
         );
     }
 
@@ -138,46 +142,140 @@ contract StakingRewardsTest is Test {
         /**
          *  lastUpdateTime = block.timestamp
          */
-        console.log(
+
+        assertEq(
             StakingRewards(stakingContract).lastUpdateTime(),
             block.timestamp
         );
-        // assertEq(StakingRewards(stakingContract).lastUpdateTime(), block.timestamp);
+        /**
+         *  Period Finish = block.timestamp + rewards Duration
+         *  Period Finish = block.timestamp + initialTime
+         */
+
+        assertEq(
+            StakingRewards(stakingContract).periodFinish(),
+            block.timestamp + initialTime
+        );
+
+        /**
+         *  Reward per token stored before stake
+         */
+
+        assertEq(StakingRewards(stakingContract).rewardPerTokenStored(), 0);
+
+        /**
+         *  Reward per token before stake will be 0 because totalSupply is 0
+         */
+        assertEq(
+            StakingRewards(stakingContract).rewardPerToken(),
+            StakingRewards(stakingContract).totalSupply()
+        );
     }
 
-    // reward per token
+    function testValuesFirstAfterStake() public {
+        stakeToken(10e18);
+        hevm.warp(block.timestamp + 1 minutes);
+        // Reward per token stored After stake
+        // Since totalSupply is now greater than 0 we'll
+        // calculate rewardPerToken
 
-    // function testCalculateRewardPerToken() public returns (uint256) {
-    //     uint256 totalSupply = StakingRewards(stakingContract).totalSupply();
-    //     if (totalSupply == 0) {
-    //         // Since there isn't any stake yet the totalSupply will be 0
-    //         assertEq(StakingRewards(stakingContract).totalSupply(), 0);
-    //         return 0;
-    //     }
-    //     (, , uint256 rewardsDuration) = stakingRewardsFactory
-    //         .stakingRewardsInfoByStakingToken(address(stakingToken));
-    //     uint256 rewardRate = 100e18 / rewardsDuration;
-    //     uint256 _rewardPerTokenStored = StakingRewards(stakingContract)
-    //         .rewardPerTokenStored();
-    //     uint256 _lastTimeRewardApplicable = StakingRewards(stakingContract)
-    //         .lastTimeRewardApplicable();
-    //     uint256 _lastUpdateTime = StakingRewards(stakingContract)
-    //         .lastUpdateTime();
-    //     //  assertEq(StakingRewards(stakingContract).totalSupply(), 0);
-    //     return
-    //         _rewardPerTokenStored +
-    //         (((_lastTimeRewardApplicable - _lastUpdateTime) *
-    //             rewardRate *
-    //             1e18) / totalSupply);
-    // }
+        uint256 _lastTimeRewardApplicable = Math.min(
+            block.timestamp,
+            StakingRewards(stakingContract).periodFinish()
+        );
+        uint256 rewardRate = 100e18 / initialTime;
 
-    // function testRewardPerTokenZeroSupply() public {
-    //     assertEq(calculateRewardPerToken(), 0);
-    // }
+        uint256 _lastUpdateTime = StakingRewards(stakingContract)
+            .lastUpdateTime();
 
-    // function testRewardPerToken() public {
-    //     stakeToken(10e18);
+        // rewardPerTokenStored is equal to rewardPerToken Before the stake
+        // it will be 0 ->
+        // rewardPerTokenStored = 0
 
-    //     // assertEq(calculateRewardPerToken(), 0);
-    // }
+        uint256 _rewardPerToken = ((((0 +
+            _lastTimeRewardApplicable -
+            _lastUpdateTime) * rewardRate) * 1e18) / 10e18);
+
+        assertEq(
+            _rewardPerToken,
+            StakingRewards(stakingContract).rewardPerToken()
+        );
+    }
+
+    function testRewardPerTokenPaidAfterStakes() public {
+        stakeToken(10e18);
+        hevm.warp(block.timestamp + 1 minutes);
+        uint256 previousRewardPerToken = StakingRewards(stakingContract)
+            .rewardPerToken();
+
+        StakingRewards(stakingContract).getReward();
+        stakeToken(10e18);
+        stakeToken(20e18);
+        hevm.warp(block.timestamp + 2 minutes);
+        assertEq(
+            previousRewardPerToken,
+            StakingRewards(stakingContract).userRewardPerTokenPaid(
+                address(this)
+            )
+        );
+    }
+
+    // reward Earned
+
+    function testEarnedValue() public {
+        stakeToken(10e18);
+        hevm.warp(block.timestamp + 1 minutes);
+
+        // _balances[account] will return user's balance
+        // _balances[account] = 10e18
+
+        // userRewardPerTokenPaid will be 0
+        // Since user hasn't claimed any reward yet
+        // userRewardPerTokenPaid = 0
+
+        // rewards[user] will be 0 since its first stake
+        // rewards[user] = 0
+
+        uint256 earnedBeforeRewardClaim = ((10e18 *
+            StakingRewards(stakingContract).rewardPerToken()) / 1e18) + 0;
+
+        assertEq(
+            earnedBeforeRewardClaim,
+            StakingRewards(stakingContract).earned(address(this))
+        );
+
+        // After claiming Reward
+        uint256 previousRewardPerToken = StakingRewards(stakingContract)
+            .rewardPerToken();
+
+        StakingRewards(stakingContract).getReward();
+
+        stakeToken(10e18);
+        stakeToken(20e18);
+        hevm.warp(block.timestamp + 2 minutes);
+
+        uint256 earnedAfterStakesAndClaim = ((10e18 + 20e18 + 10e18) *
+            (StakingRewards(stakingContract).rewardPerToken() -
+                previousRewardPerToken)) /
+            1e18 +
+            0;
+
+        assertEq(
+            earnedAfterStakesAndClaim,
+            StakingRewards(stakingContract).earned(address(this))
+        );
+    }
+
+    function testGetReward() public {
+        stakeToken(10e18);
+        hevm.warp(block.timestamp + 1 minutes);
+
+        uint256 expectedReward = StakingRewards(stakingContract).earned(
+            address(this)
+        );
+        uint256 _balanceBefore = rewardToken.balanceOf(address(this));
+        StakingRewards(stakingContract).getReward();
+        uint256 _balanceAfter = rewardToken.balanceOf(address(this));
+        assertEq(expectedReward, _balanceAfter - _balanceBefore);
+    }
 }

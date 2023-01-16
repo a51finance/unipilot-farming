@@ -8,6 +8,7 @@
   },
   "scripts": {
     "test": "clear && forge test -vv",
+    "test-mainnet": "forge test --fork-url $ETH_RPC_URL -vv",
     "logtest": "clear && forge test -vvvv",
     "deploy-stakingRewardsFactory": "./bin/deployStakingRewardsFactory.sh"
 
