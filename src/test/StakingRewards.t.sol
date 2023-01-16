@@ -201,4 +201,22 @@ contract StakingRewardsTest is Test {
             StakingRewards(stakingContract).rewardPerToken()
         );
     }
+
+    function testRewardPerTokenPaidAfterStakes() public {
+        stakeToken(10e18);
+        hevm.warp(block.timestamp + 1 minutes);
+        uint256 previousRewardPerToken = StakingRewards(stakingContract)
+            .rewardPerToken();
+
+        StakingRewards(stakingContract).getReward();
+        stakeToken(10e18);
+        stakeToken(20e18);
+        hevm.warp(block.timestamp + 2 minutes);
+        assertEq(
+            previousRewardPerToken,
+            StakingRewards(stakingContract).userRewardPerTokenPaid(
+                address(this)
+            )
+        );
+    }
 }
