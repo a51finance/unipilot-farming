@@ -172,3 +172,33 @@ contract StakingRewardsTest is Test {
         );
     }
 
+    function testValuesFirstAfterStake() public {
+        stakeToken(10e18);
+        hevm.warp(block.timestamp + 1 minutes);
+        // Reward per token stored After stake
+        // Since totalSupply is now greater than 0 we'll
+        // calculate rewardPerToken
+
+        uint256 _lastTimeRewardApplicable = Math.min(
+            block.timestamp,
+            StakingRewards(stakingContract).periodFinish()
+        );
+        uint256 rewardRate = 100e18 / initialTime;
+
+        uint256 _lastUpdateTime = StakingRewards(stakingContract)
+            .lastUpdateTime();
+
+        // rewardPerTokenStored is equal to rewardPerToken Before the stake
+        // it will be 0 ->
+        // rewardPerTokenStored = 0
+
+        uint256 _rewardPerToken = ((((0 +
+            _lastTimeRewardApplicable -
+            _lastUpdateTime) * rewardRate) * 1e18) / 10e18);
+
+        assertEq(
+            _rewardPerToken,
+            StakingRewards(stakingContract).rewardPerToken()
+        );
+    }
+}
