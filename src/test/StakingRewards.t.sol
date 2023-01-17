@@ -21,6 +21,13 @@ contract StakingRewardsTest is Test {
     uint256 stakeAmount = 10e18;
     uint256 initialTime;
 
+    // addresses
+
+    address alice = hevm.addr(1);
+    address bob = hevm.addr(2);
+    address user1 = hevm.addr(3);
+    address user2 = hevm.addr(4);
+
     function deployStakingContract(
         address _stakingToken,
         address _rewardToken,
@@ -49,9 +56,15 @@ contract StakingRewardsTest is Test {
             .stakingRewardsInfoByStakingToken(address(stakingToken));
     }
 
-    function stakeToken(uint256 _stakeAmount) public {
-        stakingToken.approve(stakingContract, _stakeAmount);
-        StakingRewards(stakingContract).stake(_stakeAmount);
+    function stakeToken(uint256 _stakeAmount, address _account) public {
+        if (_account != address(0)) {
+            stakingToken.approve(stakingContract, _stakeAmount);
+            StakingRewards(stakingContract).stake(_stakeAmount);
+        }
+        // hevm.startPrank(_account);
+        // stakingToken.approve(stakingContract, _stakeAmount);
+        // StakingRewards(stakingContract).stake(_stakeAmount);
+        // hevm.stopPrank();
     }
 
     function setUp() public {
@@ -111,7 +124,7 @@ contract StakingRewardsTest is Test {
     }
 
     function testWithdraw() public {
-        stakeToken(10e18);
+        stakeToken(10e18, address(this));
         hevm.expectEmit(true, false, false, false);
         uint256 withdrawAmount = StakingRewards(stakingContract).balanceOf(
             address(this)
@@ -124,7 +137,7 @@ contract StakingRewardsTest is Test {
 
     function testTotalSupply() public {
         for (uint256 i = 1; i < 10; i++) {
-            stakeToken(10e18);
+            stakeToken(10e18, address(this));
         }
         uint256 totalSupply = StakingRewards(stakingContract).totalSupply();
         assertEq(totalSupply, 10e18 * 9);
@@ -173,7 +186,7 @@ contract StakingRewardsTest is Test {
     }
 
     function testValuesFirstAfterStake() public {
-        stakeToken(10e18);
+        stakeToken(10e18, address(this));
         hevm.warp(block.timestamp + 1 minutes);
         // Reward per token stored After stake
         // Since totalSupply is now greater than 0 we'll
@@ -203,14 +216,14 @@ contract StakingRewardsTest is Test {
     }
 
     function testRewardPerTokenPaidAfterStakes() public {
-        stakeToken(10e18);
+        stakeToken(10e18, address(this));
         hevm.warp(block.timestamp + 1 minutes);
         uint256 previousRewardPerToken = StakingRewards(stakingContract)
             .rewardPerToken();
 
         StakingRewards(stakingContract).getReward();
-        stakeToken(10e18);
-        stakeToken(20e18);
+        stakeToken(10e18, address(this));
+        stakeToken(20e18, address(this));
         hevm.warp(block.timestamp + 2 minutes);
         assertEq(
             previousRewardPerToken,
@@ -223,18 +236,18 @@ contract StakingRewardsTest is Test {
     // reward Earned
 
     function testEarnedValue() public {
-        stakeToken(10e18);
+        /**
+         * _balances[account] will return user's balance
+         * _balances[account] = 10e18
+         * userRewardPerTokenPaid will be 0
+         * Since user hasn't claimed any reward yet
+         * userRewardPerTokenPaid = 0
+         * rewards[user] will be 0 since its first stake
+         * rewards[user] = 0
+         */
+
+        stakeToken(10e18, address(this));
         hevm.warp(block.timestamp + 1 minutes);
-
-        // _balances[account] will return user's balance
-        // _balances[account] = 10e18
-
-        // userRewardPerTokenPaid will be 0
-        // Since user hasn't claimed any reward yet
-        // userRewardPerTokenPaid = 0
-
-        // rewards[user] will be 0 since its first stake
-        // rewards[user] = 0
 
         uint256 earnedBeforeRewardClaim = ((10e18 *
             StakingRewards(stakingContract).rewardPerToken()) / 1e18) + 0;
@@ -250,8 +263,8 @@ contract StakingRewardsTest is Test {
 
         StakingRewards(stakingContract).getReward();
 
-        stakeToken(10e18);
-        stakeToken(20e18);
+        stakeToken(10e18, address(this));
+        stakeToken(20e18, address(this));
         hevm.warp(block.timestamp + 2 minutes);
 
         uint256 earnedAfterStakesAndClaim = ((10e18 + 20e18 + 10e18) *
@@ -266,8 +279,24 @@ contract StakingRewardsTest is Test {
         );
     }
 
+    function testEarnedValueWithMultipleUsers() public {
+        stakeToken(10e18, address(this));
+        hevm.warp(block.timestamp + 1 minutes);
+
+        hevm.startPrank(alice);
+
+        stakeToken(10e18, address(this));
+        hevm.warp(block.timestamp + 1 minutes);
+
+        console.log(StakingRewards(stakingContract).balanceOf(alice));
+
+        hevm.stopPrank();
+
+        console.log(StakingRewards(stakingContract).balanceOf(address(this)));
+    }
+
     function testGetReward() public {
-        stakeToken(10e18);
+        stakeToken(10e18, address(this));
         hevm.warp(block.timestamp + 1 minutes);
 
         uint256 expectedReward = StakingRewards(stakingContract).earned(
