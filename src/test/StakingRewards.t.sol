@@ -387,4 +387,22 @@ contract StakingRewardsTest is Test {
 
         hevm.warp(block.timestamp + 1 minutes);
     }
+
+    function testExitFunction() public {
+        stakingToken.transfer(user2, 200e18);
+
+        hevm.startPrank(user2);
+
+        stakeToken(200e18);
+        hevm.warp(block.timestamp + 10 minutes);
+        uint256 reward = StakingRewards(stakingContract).earned(address(user2));
+        StakingRewards(stakingContract).exit();
+        uint256 finalOutPut = stakingToken.balanceOf(address(user2)) +
+            rewardToken.balanceOf(address(user2));
+        uint256 expectedOutPut = reward + 200e18;
+        assertEq(finalOutPut, expectedOutPut);
+        assertEq(StakingRewards(stakingContract).balanceOf(address(user2)), 0);
+
+        hevm.stopPrank();
+    }
 }
