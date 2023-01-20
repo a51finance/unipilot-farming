@@ -405,4 +405,42 @@ contract StakingRewardsTest is Test {
 
         hevm.stopPrank();
     }
+
+    // Notify Reward Amount
+    function testCannotPassRequireChecksNotifyRewardAmount() public {
+        stakingRewardsFactory = new StakingRewardsFactory(block.timestamp + 1);
+        uint256 iTime = block.timestamp + 10 days;
+        deployStakingContract(
+            address(stakingToken),
+            address(rewardToken),
+            100e18,
+            iTime
+        );
+
+        // reducing existing period
+
+        hevm.expectRevert(bytes("CRP"));
+        hevm.prank(address(stakingRewardsFactory));
+        StakingRewards(stakingContract).notifyRewardAmount(
+            20e18,
+            block.timestamp + 2 days
+        );
+        uint256 _periodFinish = 0;
+        uint256 _rewardRate = 0;
+        if (block.timestamp >= _periodFinish) {
+            _rewardRate = 100e18 / iTime;
+            assertEq(_rewardRate, StakingRewards(stakingContract).rewardRate());
+        }
+
+        // Providing too high reward
+
+        hevm.warp(block.timestamp + 7 days);
+        uint256 newDuration = block.timestamp + 5 days;
+        hevm.expectRevert(bytes("RTH"));
+        hevm.prank(address(stakingRewardsFactory));
+        StakingRewards(stakingContract).notifyRewardAmount(
+            2000000e18,
+            newDuration
+        );
+    }
 }
