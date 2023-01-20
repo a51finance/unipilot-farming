@@ -165,6 +165,17 @@ contract StakingRewardsFactoryTest is Test {
 
     // NotifyRewardAmounts function
 
+    function testNotifyRewardAmount() public {
+        stakingToken = new MockERC20("Token Test Staking", "TTS");
+        deployStakingContract(
+            address(stakingToken),
+            address(rewardToken),
+            10e18,
+            block.timestamp + 2 days
+        );
+        stakingRewardsFactory.notifyRewardAmount(address(stakingToken));
+    }
+
     function testNotifyRewardAmounts() public {
         for (uint256 i = 0; i < 5; i++) {
             stakingToken = new MockERC20("Token Test Staking", "TTS");
