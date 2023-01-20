@@ -16,3 +16,4 @@ artifacts/
 typechain-types/
 
 .env
+lcov.info
