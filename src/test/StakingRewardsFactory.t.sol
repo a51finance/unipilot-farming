@@ -96,6 +96,40 @@ contract StakingRewardsFactoryTest is Test {
         );
     }
 
+    function testCannotDeployWithInvalidAddress() public {
+        deployStakingContract(
+            address(stakingToken),
+            address(rewardToken),
+            100e18,
+            block.timestamp + 2 days
+        );
+        hevm.warp(block.timestamp + 10);
+        hevm.expectRevert(bytes("IA"));
+        deployStakingContract(
+            address(0),
+            address(rewardToken),
+            100e18,
+            block.timestamp + 2 days
+        );
+
+        hevm.warp(block.timestamp + 10);
+        hevm.expectRevert(bytes("IA"));
+        deployStakingContract(
+            address(stakingToken),
+            address(0),
+            100e18,
+            block.timestamp + 2 days
+        );
+
+        hevm.expectRevert(bytes("IA"));
+        deployStakingContract(
+            address(0),
+            address(0),
+            100e18,
+            block.timestamp + 2 days
+        );
+    }
+
     // Update function
 
     function testUpdateStakingContract() public {
