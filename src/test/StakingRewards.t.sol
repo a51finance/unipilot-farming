@@ -501,4 +501,57 @@ contract StakingRewardsTest is Test {
             s
         );
     }
+
+    function testCannotStakePermitWithZero() public {
+        hevm.chainId(5);
+
+        stakingRewardsFactory = new StakingRewardsFactory(block.timestamp + 1);
+        tokenPermit = new MockERC20Permit("Token", "TKN", 18, 5);
+
+        deployStakingContract(
+            address(tokenPermit),
+            address(rewardToken),
+            100e18,
+            block.timestamp + 10 days
+        );
+
+        (address stakingRewards, , , ) = stakingRewardsFactory
+            .stakingRewardsInfoByStakingToken(address(tokenPermit));
+
+        uint256 privateKey = 0xBEEF;
+        address owner = hevm.addr(privateKey);
+        tokenPermit.mint(owner, 1000000e18);
+        hevm.prank(owner);
+        uint256 nonce = hevm.getNonce(address(100));
+
+        (uint8 v, bytes32 r, bytes32 s) = hevm.sign(
+            privateKey,
+            keccak256(
+                abi.encodePacked(
+                    "\x19\x01",
+                    tokenPermit.DOMAIN_SEPARATOR(),
+                    keccak256(
+                        abi.encode(
+                            PERMIT_TYPEHASH,
+                            owner,
+                            address(stakingRewards),
+                            0,
+                            nonce,
+                            block.timestamp
+                        )
+                    )
+                )
+            )
+        );
+
+        hevm.expectRevert(bytes("CSZ"));
+        hevm.prank(owner);
+        StakingRewards(stakingRewards).stakeWithPermit(
+            0,
+            block.timestamp,
+            v,
+            r,
+            s
+        );
+    }
 }
