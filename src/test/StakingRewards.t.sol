@@ -3,6 +3,7 @@ pragma solidity ^0.7.6;
 
 import "forge-std/Test.sol";
 import "./mocks/MockERC20.sol";
+import "./mocks/MockERC20Permit.sol";
 import "../StakingRewardsFactory.sol";
 import "../StakingRewards.sol";
 import "forge-std/console.sol";
@@ -12,14 +13,20 @@ contract StakingRewardsTest is Test {
     event Withdrawn(address indexed user, uint256 amount);
 
     Vm hevm = Vm(HEVM_ADDRESS);
+    bytes32 constant PERMIT_TYPEHASH =
+        keccak256(
+            "Permit(address owner,address spender,uint256 value,uint256 nonce,uint256 deadline)"
+        );
 
     StakingRewardsFactory public stakingRewardsFactory;
-    StakingRewards public stakingRewards;
+    // StakingRewards public stakingRewards;
     address public stakingContract;
     MockERC20 public stakingToken;
     MockERC20 public rewardToken;
+    MockERC20Permit tokenPermit;
     uint256 stakeAmount = 10e18;
     uint256 initialTime;
+    uint256 internal ownerPrivateKey;
 
     // addresses
 
@@ -441,6 +448,57 @@ contract StakingRewardsTest is Test {
         StakingRewards(stakingContract).notifyRewardAmount(
             2000000e18,
             newDuration
+        );
+    }
+
+    function testStakeWithPermit() public {
+        hevm.chainId(5);
+
+        stakingRewardsFactory = new StakingRewardsFactory(block.timestamp + 1);
+        tokenPermit = new MockERC20Permit("Token", "TKN", 18, 5);
+
+        deployStakingContract(
+            address(tokenPermit),
+            address(rewardToken),
+            100e18,
+            block.timestamp + 10 days
+        );
+
+        (address stakingRewards, , , ) = stakingRewardsFactory
+            .stakingRewardsInfoByStakingToken(address(tokenPermit));
+
+        uint256 privateKey = 0xBEEF;
+        address owner = hevm.addr(privateKey);
+        tokenPermit.mint(owner, 1000000e18);
+        hevm.prank(owner);
+        uint256 nonce = hevm.getNonce(address(100));
+
+        (uint8 v, bytes32 r, bytes32 s) = hevm.sign(
+            privateKey,
+            keccak256(
+                abi.encodePacked(
+                    "\x19\x01",
+                    tokenPermit.DOMAIN_SEPARATOR(),
+                    keccak256(
+                        abi.encode(
+                            PERMIT_TYPEHASH,
+                            owner,
+                            address(stakingRewards),
+                            10e18,
+                            nonce,
+                            block.timestamp
+                        )
+                    )
+                )
+            )
+        );
+        hevm.prank(owner);
+        StakingRewards(stakingRewards).stakeWithPermit(
+            10e18,
+            block.timestamp,
+            v,
+            r,
+            s
         );
     }
 }
