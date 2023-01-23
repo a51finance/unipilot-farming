@@ -2,6 +2,7 @@
 pragma solidity ^0.7.6;
 
 import "./interfaces/SafeERC20.sol";
+import "./interfaces/IUniswapV2ERC20.sol";
 import "./libraries/SafeMath.sol";
 import "./libraries/Math.sol";
 import "openzeppelin-contracts/contracts/utils/ReentrancyGuard.sol";
@@ -194,16 +195,4 @@ contract StakingRewards is
     }
 
     /* ========== EVENTS ========== */
-}
-
-interface IUniswapV2ERC20 {
-    function permit(
-        address owner,
-        address spender,
-        uint256 value,
-        uint256 deadline,
-        uint8 v,
-        bytes32 r,
-        bytes32 s
-    ) external;
 }
