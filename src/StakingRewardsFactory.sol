@@ -46,6 +46,7 @@ contract StakingRewardsFactory is Ownable, IStakingRewardsFactory {
         ];
         require(rewardToken != address(0) && stakingToken != address(0), "IA");
         require(info.stakingRewards == address(0), "AD");
+        require(rewardAmount > 0, "ZR");
         address stakingRewardContract = address(
             new StakingRewards{
                 salt: keccak256(abi.encodePacked(rewardToken, stakingToken))
