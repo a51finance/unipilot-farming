@@ -16,12 +16,31 @@ contract StakingRewardsFactoryTest is Test {
         uint256 rewardsDuration
     );
 
+    event Updated(
+        address indexed stakingRewardContract,
+        uint256 rewardAmount,
+        uint256 rewardsDuration
+    );
+
+    event RewardAdded(uint256 reward, uint256 periodFinish);
+
+    struct TestStakingRewardsInfo {
+        address _stakingRewards;
+        address _rewardToken;
+        uint256 _rewardAmount;
+        uint256 _duration;
+    }
     Vm hevm = Vm(0x7109709ECfa91a80626fF3989D68f67F5b1DD12D);
     StakingRewardsFactory public stakingRewardsFactory;
     StakingRewards public stakingRewards;
     MockERC20 public stakingToken;
     MockERC20 public rewardToken;
     uint256 stakeAmount = 10e18;
+
+    address alice = hevm.addr(1);
+    address bob = hevm.addr(2);
+    address user1 = hevm.addr(3);
+    address user2 = hevm.addr(4);
 
     function deployStakingContract(
         address _stakingToken,
