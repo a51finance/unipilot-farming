@@ -182,6 +182,28 @@ contract StakingRewardsFactoryTest is Test {
         );
     }
 
+    function testCannotDeployWithSameAddresses() public {
+        hevm.warp(block.timestamp + 10);
+        hevm.expectRevert(bytes("IA"));
+        stakingRewardsFactory.deploy(
+            address(stakingToken),
+            address(stakingToken),
+            100e18,
+            block.timestamp + 2 days
+        );
+    }
+
+    function testCannotDeployWithZeroAmount() public {
+        hevm.warp(block.timestamp + 10);
+        hevm.expectRevert(bytes("ZR"));
+        stakingRewardsFactory.deploy(
+            address(stakingToken),
+            address(rewardToken),
+            0,
+            block.timestamp + 2 days
+        );
+    }
+
     // Update function
 
     function testUpdateStakingContract() public {
