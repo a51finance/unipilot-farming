@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.7.6;
+pragma abicoder v2;
 
 import "forge-std/Test.sol";
 import "./mocks/MockERC20.sol";
@@ -30,6 +31,7 @@ contract StakingRewardsFactoryTest is Test {
         uint256 _rewardAmount;
         uint256 _duration;
     }
+
     Vm hevm = Vm(0x7109709ECfa91a80626fF3989D68f67F5b1DD12D);
     StakingRewardsFactory public stakingRewardsFactory;
     StakingRewards public stakingRewards;
@@ -282,6 +284,65 @@ contract StakingRewardsFactoryTest is Test {
     }
 
     // notifyRewardAmount function
+
+    function testUpdatedNotifyRewardAmount() public {
+        uint256 _amount = 10e18;
+        uint256 _time = block.timestamp + 2 days;
+        stakingToken = new MockERC20("Token Test Staking", "TTS");
+        deployStakingContract(
+            address(stakingToken),
+            address(rewardToken),
+            _amount,
+            _time
+        );
+
+        (address stakingContract, , , ) = stakingRewardsFactory
+            .stakingRewardsInfoByStakingToken(address(stakingToken));
+
+        MockERC20(rewardToken).transfer(address(stakingContract), _amount);
+
+        // Since notifyRewardAmount function is tested above we need to test the updated
+        // amount so we will call the function from stakingRewards Contract directly
+
+        hevm.expectEmit(false, false, false, false);
+        emit RewardAdded(_amount, block.timestamp + _time);
+        hevm.prank(address(stakingRewardsFactory));
+        StakingRewards(stakingContract).notifyRewardAmount(_amount, _time);
+
+        assertEq(
+            StakingRewards(stakingContract).lastUpdateTime(),
+            block.timestamp
+        );
+
+        assertEq(
+            StakingRewards(stakingContract).periodFinish(),
+            block.timestamp + _time
+        );
+
+        // Updating rewards and duration
+
+        _amount = 100e18;
+        _time = block.timestamp + 5 days;
+
+        stakingRewardsFactory.update(address(stakingToken), _amount, _time);
+
+        MockERC20(rewardToken).transfer(address(stakingContract), _amount);
+
+        hevm.expectEmit(false, false, false, false);
+        emit RewardAdded(_amount, block.timestamp + _time);
+        hevm.prank(address(stakingRewardsFactory));
+        StakingRewards(stakingContract).notifyRewardAmount(_amount, _time);
+
+        assertEq(
+            StakingRewards(stakingContract).lastUpdateTime(),
+            block.timestamp
+        );
+        assertEq(
+            StakingRewards(stakingContract).periodFinish(),
+            block.timestamp + _time
+        );
+    }
+
     function testCannotTestNotifyRewardAmount() public {
         stakingRewardsFactory.deploy(
             address(stakingToken),
