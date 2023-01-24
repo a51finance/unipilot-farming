@@ -213,17 +213,18 @@ contract StakingRewardsFactoryTest is Test {
             100e18,
             block.timestamp + 2 days
         );
-
         hevm.warp(block.timestamp + 1 days);
         uint256 futureDuration = block.timestamp + 5 days;
         stakingRewardsFactory.update(
             address(stakingToken),
-            100e18,
+            200e18,
             futureDuration
         );
-        (, , , uint256 duration) = stakingRewardsFactory
+        (, , uint256 rewardAmount, uint256 duration) = stakingRewardsFactory
             .stakingRewardsInfoByStakingToken(address(stakingToken));
+
         assertEq(duration, futureDuration);
+        assertEq(rewardAmount, 200e18);
     }
 
     function testCannotUpdateStakingContract() public {
