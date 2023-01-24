@@ -96,6 +96,39 @@ contract StakingRewardsFactoryTest is Test {
         }
     }
 
+    function testStakingRewardsInfo() public {
+        hevm.warp(block.timestamp + 10);
+        uint256 rewardAmount = 100e18;
+
+        uint256 rewardsDuration = block.timestamp + 2 days;
+        hevm.recordLogs();
+
+        stakingRewardsFactory.deploy(
+            address(stakingToken),
+            address(rewardToken),
+            rewardAmount,
+            rewardsDuration
+        );
+
+        Vm.Log[] memory entries = hevm.getRecordedLogs();
+
+        (
+            address stakingRewardsContract,
+            address _rewardToken,
+            uint256 _rewardAmount,
+            uint256 _duration
+        ) = stakingRewardsFactory.stakingRewardsInfoByStakingToken(
+                address(stakingToken)
+            );
+
+        address stakingReward = address(uint160(uint256(entries[0].topics[1])));
+
+        assertEq(stakingReward, stakingRewardsContract);
+        assertEq(address(rewardToken), address(_rewardToken));
+        assertEq(address(rewardAmount), address(_rewardAmount));
+        assertEq(rewardsDuration, _duration);
+    }
+
     function testCannotDeployWithZeroAddress() public {
         hevm.warp(block.timestamp + 10);
 
