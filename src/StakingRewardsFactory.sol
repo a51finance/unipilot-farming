@@ -45,11 +45,19 @@ contract StakingRewardsFactory is Ownable, IStakingRewardsFactory {
             stakingToken
         ];
         require(rewardToken != address(0) && stakingToken != address(0), "IA");
+        require(rewardToken != stakingToken, "IA");
         require(info.stakingRewards == address(0), "AD");
         require(rewardAmount > 0, "ZR");
         address stakingRewardContract = address(
             new StakingRewards{
-                salt: keccak256(abi.encodePacked(rewardToken, stakingToken))
+                salt: keccak256(
+                    abi.encodePacked(
+                        stakingToken,
+                        rewardToken,
+                        rewardAmount,
+                        rewardsDuration
+                    )
+                )
             }(address(this), rewardToken, stakingToken)
         );
 
@@ -80,7 +88,7 @@ contract StakingRewardsFactory is Ownable, IStakingRewardsFactory {
         info.rewardAmount = rewardAmount;
         info.duration = rewardsDuration;
 
-        emit Updated(stakingToken, rewardAmount, rewardsDuration);
+        emit Updated(info.stakingRewards, rewardAmount, rewardsDuration);
     }
 
     ///// permissionless functions
