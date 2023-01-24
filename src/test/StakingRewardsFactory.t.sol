@@ -238,6 +238,18 @@ contract StakingRewardsFactoryTest is Test {
         );
     }
 
+    function testCannotUpdateStakingContractWithOwner() public {
+        hevm.warp(block.timestamp + 1 days);
+        uint256 futureDuration = block.timestamp + 5 days;
+        hevm.expectRevert(bytes("Ownable: caller is not the owner"));
+        hevm.prank(alice);
+        stakingRewardsFactory.update(
+            address(stakingToken),
+            100e18,
+            futureDuration
+        );
+    }
+
     // NotifyRewardAmounts function
 
     function testNotifyRewardAmount() public {
