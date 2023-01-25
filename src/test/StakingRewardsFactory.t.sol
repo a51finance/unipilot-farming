@@ -206,6 +206,31 @@ contract StakingRewardsFactoryTest is Test {
         );
     }
 
+    function testEmitDeploy() public {
+        uint256 time = block.timestamp + 2 days;
+        uint256 amount = 100e18;
+        hevm.recordLogs();
+
+        stakingRewardsFactory.deploy(
+            address(stakingToken),
+            address(rewardToken),
+            amount,
+            time
+        );
+
+        Vm.Log[] memory entries = hevm.getRecordedLogs();
+
+        assertEq(
+            abi.encode(
+                address(stakingToken),
+                address(rewardToken),
+                amount,
+                time
+            ),
+            entries[0].data
+        );
+    }
+
     // Update function
 
     function testUpdateStakingContract() public {
@@ -250,6 +275,31 @@ contract StakingRewardsFactoryTest is Test {
             100e18,
             futureDuration
         );
+    }
+
+    function testEmitUpdate() public {
+        deployStakingContract(
+            address(stakingToken),
+            address(rewardToken),
+            100e18,
+            block.timestamp + 2 days
+        );
+
+        hevm.warp(block.timestamp + 1 days);
+
+        uint256 futureDuration = block.timestamp + 5 days;
+        uint256 rewardAmount = 200e18;
+        hevm.recordLogs();
+
+        stakingRewardsFactory.update(
+            address(stakingToken),
+            rewardAmount,
+            futureDuration
+        );
+
+        Vm.Log[] memory entries = hevm.getRecordedLogs();
+
+        assertEq(abi.encode(rewardAmount, futureDuration), entries[0].data);
     }
 
     // NotifyRewardAmounts function
