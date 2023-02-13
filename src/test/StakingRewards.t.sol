@@ -11,6 +11,7 @@ import "forge-std/console.sol";
 contract StakingRewardsTest is Test {
     event Staked(address indexed user, uint256 amount);
     event Withdrawn(address indexed user, uint256 amount);
+    event RewardPaid(address indexed user, uint256 reward);
 
     Vm hevm = Vm(HEVM_ADDRESS);
     bytes32 constant PERMIT_TYPEHASH =
@@ -25,6 +26,7 @@ contract StakingRewardsTest is Test {
     MockERC20 public rewardToken;
     MockERC20Permit tokenPermit;
     uint256 stakeAmount = 10e18;
+    // uint8 numberOfDays = 30;
     uint256 initialTime;
     uint256 internal ownerPrivateKey;
 
@@ -72,7 +74,7 @@ contract StakingRewardsTest is Test {
         stakingToken = new MockERC20("Token Test Staking", "TTS");
         rewardToken = new MockERC20("Token Test Reward", "TTR");
         stakingRewardsFactory = new StakingRewardsFactory(block.timestamp + 1);
-        initialTime = block.timestamp + 10 days;
+        initialTime = (30 * 24 * 60 * 60);
         deployStakingContract(
             address(stakingToken),
             address(rewardToken),
@@ -87,6 +89,19 @@ contract StakingRewardsTest is Test {
         hevm.expectEmit(true, false, false, false);
         emit Staked(address(this), _stakeAmount);
         StakingRewards(stakingContract).stake(_stakeAmount);
+        hevm.warp(block.timestamp + 2 days);
+
+        // assertEq(
+        //     StakingRewards(stakingContract).earned(address(this)) / 1e18,
+        //     19
+        // );
+
+        // StakingRewards(stakingContract).getReward();
+
+        // assertEq(
+        //     StakingRewards(stakingContract).earned(address(this)) / 1e18,
+        //     0
+        // );
     }
 
     function testCannotStakeZero() public {
@@ -103,6 +118,66 @@ contract StakingRewardsTest is Test {
             emit Staked(address(this), _stakeAmount);
             StakingRewards(stakingContract).stake(_stakeAmount);
         }
+    }
+
+    // scenarios testing
+
+    function testStakeWithoutNotifying() public {
+        uint256 _stakeAmount = 10e18;
+        uint256 _rewardAmount = 100e18;
+        uint256 _duration = block.timestamp + 10 minutes;
+        MockERC20 stakingTokenTest = new MockERC20("Token  Staking", "TS");
+
+        // deploy staking vault
+
+        stakingRewardsFactory.deploy(
+            address(stakingTokenTest),
+            address(rewardToken),
+            _rewardAmount,
+            _duration
+        );
+
+        (stakingContract, , , ) = stakingRewardsFactory
+            .stakingRewardsInfoByStakingToken(address(stakingTokenTest));
+
+        // approve tokens
+
+        stakingTokenTest.approve(stakingContract, _stakeAmount);
+
+        // stake
+
+        StakingRewards(stakingContract).stake(_stakeAmount);
+
+        // fast forward 10 mins
+
+        hevm.warp(block.timestamp + 10 minutes);
+        // console.log(
+        //     "Before Notifying ====>",
+        //     StakingRewards(stakingContract).earned(address(this))
+        // );
+
+        // Transfer tokens to factory and run notify
+
+        bool success = rewardToken.transfer(
+            address(stakingRewardsFactory),
+            _rewardAmount
+        );
+        if (success) {
+            stakingRewardsFactory.notifyRewardAmounts();
+        } else {
+            revert("Transfer Failed");
+        }
+
+        // fast forward 10 mins
+
+        hevm.warp(block.timestamp + 10 minutes);
+
+        // Check reward Again
+
+        // console.log(
+        //     "After Notifying ====>",
+        //     StakingRewards(stakingContract).earned(address(this))
+        // );
     }
 
     // Fuzz testing stake function
@@ -554,4 +629,125 @@ contract StakingRewardsTest is Test {
             s
         );
     }
+
+    // scenario
+
+    function testScenario3() public {
+        // step 1 deploy factory (did by setup function)
+        // step 2 deploy Vault (did by setup function)
+        // Step 3 Transfer Reward Tokens (did by setup function)
+
+        // step 4 Run notifier
+
+        StakingRewardsFactory(stakingRewardsFactory).notifyRewardAmount(
+            address(stakingToken)
+        );
+
+        hevm.warp(block.timestamp + 31 days);
+        StakingRewardsFactory(stakingRewardsFactory).update(
+            address(stakingToken),
+            200e18,
+            5 days
+        );
+
+        stakeToken(50e18);
+        hevm.warp(block.timestamp + 1 days);
+    }
+
+    function testScenario4() public {
+        // Variable befor staking any values both
+        //  are equal to zero and pass this test
+        assertEq(StakingRewards(stakingContract).rewardPerTokenStored(), 0);
+        assertEq(StakingRewards(stakingContract).rewardPerToken(), 0);
+
+        // Stake some value
+        stakeToken(10e18);
+
+        // After 10 Minutes
+        hevm.warp(block.timestamp + 10 minutes);
+
+        // Store rewardPerToken in a variable
+        uint256 previousRewardPerToken = StakingRewards(stakingContract)
+            .rewardPerToken();
+
+        // Stake another
+        stakeToken(15e18);
+
+        // previousRewardPerToken should be equal to
+        // rewardPerTokenStored
+        console.log(
+            previousRewardPerToken,
+            StakingRewards(stakingContract).rewardPerTokenStored()
+        );
+
+        // Pass the test
+        assertEq(
+            previousRewardPerToken,
+            StakingRewards(stakingContract).rewardPerTokenStored()
+        );
+    }
 }
+
+/**
+ * 
+ *     console.log("=============== After Stake ================");
+        stakeToken(50e18);
+
+        hevm.warp(initialTime + 2 days);
+
+        console.log(
+            "lastTimeRewardApplicable --> ",
+            StakingRewards(stakingContract).lastTimeRewardApplicable()
+        );
+
+        console.log(
+            "lastUpdateTime --> ",
+            StakingRewards(stakingContract).lastUpdateTime()
+        );
+
+        console.log(
+            "Reward Rate --> ",
+            StakingRewards(stakingContract).rewardRate()
+        );
+
+        console.log(
+            "rewardPerToken --> ",
+            StakingRewards(stakingContract).rewardPerToken()
+        );
+
+        console.log(
+            "Balance -->",
+            StakingRewards(stakingContract).balanceOf(address(this))
+        );
+        console.log(
+            "rewardPerTokenPaid --> ",
+            StakingRewards(stakingContract).userRewardPerTokenPaid(
+                address(this)
+            )
+        );
+
+        console.log(
+            "rewardPerTokenStored --> ",
+            StakingRewards(stakingContract).rewardPerTokenStored()
+        );
+
+        console.log(
+            "earned -->",
+            StakingRewards(stakingContract).earned(address(this))
+        );
+
+        console.log("============== earned calculations ==============");
+
+        console.log(
+            "rewardPerTokenPaid --> ",
+            StakingRewards(stakingContract).userRewardPerTokenPaid(
+                address(this)
+            )
+        );
+
+        console.log(
+            "rewards --> ",
+            StakingRewards(stakingContract).rewards(address(this))
+        );
+ * 
+ */
