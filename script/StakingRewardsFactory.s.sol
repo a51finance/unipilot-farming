@@ -19,17 +19,17 @@ contract DeployStakingRewardsFactoryScript is Script {
             stakingRewardsGenesis
         );
 
-        IERC20(rewardsToken).transfer(address(stakingRewardsFactory), 100e18);
+        // IERC20(rewardsToken).transfer(address(stakingRewardsFactory), 100e18);
 
         // vm.stopBroadcast();
 
         // vm.startBroadcast(deployerPrivateKey);
-        stakingRewardsFactory.deploy(
-            stakingToken,
-            rewardsToken,
-            100e18,
-            block.timestamp + 10 days
-        );
+        // stakingRewardsFactory.deploy(
+        //     stakingToken,
+        //     rewardsToken,
+        //     100e18,
+        //     block.timestamp + 10 days
+        // );
 
         // stakingRewardsFactory.notifyRewardAmounts();
         vm.stopBroadcast();
