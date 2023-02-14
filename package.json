@@ -7,8 +7,12 @@
     "test": "test"
   },
   "scripts": {
-    "test": "hardhat test",
-    "deploy-stakingRewardsFactory":"forge script script/StakingRewardsFactory.s.sol:StakingRewardsFactory --rpc-url $GOERLI_RPC_URL --broadcast --verify -vvvv"
+    "test": "clear && forge test -vv",
+    "test-mainnet": "forge test --fork-url $ETH_RPC_URL -vv",
+    "logtest": "clear && forge test -vvvv",
+    "deploy-stakingRewardsFactory": "./bin/deployStakingRewardsFactory.sh",
+    "deploy-stakingDualRewardsFactory": "./bin/deployStakingDualRewardsFactory.sh"
+
   },
   "author": "Devan Non <devanon@chainstride.capital>",
   "license": "Apache-2.0",
@@ -22,7 +26,7 @@
     "@types/node": "^17.0.35",
     "chai": "^4.3.6",
     "ethereum-waffle": "^3.2.0",
-    "ethers": "^5.6.6",
+    "ethers": "^5.7.2",
     "hardhat": "^2.9.5",
     "hardhat-preprocessor": "^0.1.4",
     "ts-node": "^10.7.0",

@@ -3,6 +3,7 @@ cache/
 out/
 lib
 broadcast/
+bin/
 
 # JS
 node_modules/
@@ -15,3 +16,4 @@ artifacts/
 typechain-types/
 
 .env
+lcov.info
