@@ -4,7 +4,7 @@ pragma solidity ^0.7.6;
 import "openzeppelin-contracts/contracts/access/Ownable.sol";
 import "./StakingDualRewards.sol";
 
-contract StakingRewardsFactory is Ownable {
+contract StakingDualRewardsFactory is Ownable {
     // immutables
     uint256 public stakingRewardsGenesis;
 
