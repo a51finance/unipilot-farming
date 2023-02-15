@@ -73,7 +73,35 @@ contract StakingRewardsFactoryTest is Test {
 
     function testDeployStakingRewardsContract() public {
         hevm.warp(block.timestamp + 10);
-        // hevm.recordLogs();
+        hevm.recordLogs();
+
+        stakingDualRewardsFactory.deploy(
+            address(this),
+            address(stakingToken),
+            address(rewardTokenA),
+            address(rewardTokenB),
+            200e18,
+            100e18,
+            2 days
+        );
+
+        Vm.Log[] memory entries = hevm.getRecordedLogs();
+
+        (
+            address stakingDualRewardsContract,
+            ,
+            ,
+            ,
+            ,
+
+        ) = stakingDualRewardsFactory.stakingRewardsInfoByStakingToken(
+                address(stakingToken)
+            );
+
+        address stakingReward = address(uint160(uint256(entries[1].topics[1])));
+
+        assertEq(stakingReward, stakingDualRewardsContract);
+    }
 
         stakingDualRewardsFactory.deploy(
             address(this),
