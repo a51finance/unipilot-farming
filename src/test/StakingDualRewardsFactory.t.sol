@@ -145,4 +145,73 @@ contract StakingRewardsFactoryTest is Test {
         assertEq(_rewardAmountB, 100e18);
         assertEq(_duration, 2 days);
     }
+
+    function testCannotDifferentAddressWithDeployment() public {
+        hevm.warp(block.timestamp + 1 minutes);
+
+        hevm.expectRevert(bytes("SRT"));
+        stakingDualRewardsFactory.deploy(
+            address(this),
+            address(stakingToken),
+            address(rewardTokenA),
+            address(rewardTokenA),
+            200e18,
+            100e18,
+            2 days
+        );
+
+        stakingDualRewardsFactory.deploy(
+            address(this),
+            address(stakingToken),
+            address(rewardTokenA),
+            address(rewardTokenB),
+            200e18,
+            100e18,
+            2 days
+        );
+        hevm.expectRevert(bytes("AD"));
+        stakingDualRewardsFactory.deploy(
+            address(this),
+            address(stakingToken),
+            address(rewardTokenA),
+            address(rewardTokenB),
+            200e18,
+            100e18,
+            2 days
+        );
+
+        hevm.expectRevert(bytes("IRT(s)"));
+        stakingDualRewardsFactory.deploy(
+            address(this),
+            address(stakingToken),
+            address(0),
+            address(rewardTokenB),
+            200e18,
+            100e18,
+            2 days
+        );
+
+        hevm.expectRevert(bytes("IRT(s)"));
+        stakingDualRewardsFactory.deploy(
+            address(this),
+            address(stakingToken),
+            address(rewardTokenA),
+            address(0),
+            0,
+            0,
+            2 days
+        );
+
+        hevm.expectRevert(bytes("ZR"));
+        stakingDualRewardsFactory.deploy(
+            address(this),
+            address(stakingToken),
+            address(rewardTokenA),
+            address(rewardTokenB),
+            0,
+            0,
+            2 days
+        );
+    }
+
 }
