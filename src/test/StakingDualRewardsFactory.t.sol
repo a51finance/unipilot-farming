@@ -103,6 +103,9 @@ contract StakingRewardsFactoryTest is Test {
         assertEq(stakingReward, stakingDualRewardsContract);
     }
 
+    function testStakingRewardsInfo() public {
+        hevm.warp(block.timestamp + 10);
+        hevm.recordLogs();
         stakingDualRewardsFactory.deploy(
             address(this),
             address(stakingToken),
@@ -113,7 +116,7 @@ contract StakingRewardsFactoryTest is Test {
             2 days
         );
 
-        address _stakingDualRewards;
+        address _stakingDualRewardsContract;
         address _rewardTokenA;
         address _rewardTokenB;
         uint256 _rewardAmountA;
@@ -121,7 +124,7 @@ contract StakingRewardsFactoryTest is Test {
         uint256 _duration;
 
         (
-            _stakingDualRewards,
+            _stakingDualRewardsContract,
             _rewardTokenA,
             _rewardTokenB,
             _rewardAmountA,
@@ -131,13 +134,15 @@ contract StakingRewardsFactoryTest is Test {
             address(stakingToken)
         );
 
+        Vm.Log[] memory entries = hevm.getRecordedLogs();
+        assertEq(
+            address(uint160(uint256(entries[1].topics[1]))),
+            _stakingDualRewardsContract
+        );
         assertEq(_rewardTokenA, address(rewardTokenA));
         assertEq(_rewardTokenB, address(rewardTokenB));
         assertEq(_rewardAmountA, 200e18);
         assertEq(_rewardAmountB, 100e18);
         assertEq(_duration, 2 days);
-
-        // Vm.Log[] memory entries = hevm.getRecordedLogs();
-        // console.log(entries[0].)
     }
 }
