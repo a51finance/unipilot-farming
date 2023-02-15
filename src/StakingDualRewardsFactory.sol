@@ -4,7 +4,9 @@ pragma solidity ^0.7.6;
 import "openzeppelin-contracts/contracts/access/Ownable.sol";
 import "./StakingDualRewards.sol";
 
-contract StakingDualRewardsFactory is Ownable {
+import "./interfaces/IStakingDualRewardsFactory.sol";
+
+contract StakingDualRewardsFactory is Ownable, IStakingDualRewardsFactory {
     // immutables
     uint256 public stakingRewardsGenesis;
 
@@ -25,7 +27,7 @@ contract StakingDualRewardsFactory is Ownable {
     mapping(address => StakingRewardsInfo)
         public stakingRewardsInfoByStakingToken;
 
-    constructor(uint256 _stakingRewardsGenesis) public Ownable() {
+    constructor(uint256 _stakingRewardsGenesis) Ownable() {
         require(_stakingRewardsGenesis >= block.timestamp, "GTS");
 
         stakingRewardsGenesis = _stakingRewardsGenesis;
@@ -77,6 +79,16 @@ contract StakingDualRewardsFactory is Ownable {
         info.rewardAmountB = rewardAmountB;
         info.duration = rewardsDuration;
         stakingTokens.push(stakingToken);
+
+        emit Deployed(
+            info.stakingRewards,
+            stakingToken,
+            rewardsTokenA,
+            rewardsTokenB,
+            rewardAmountA,
+            rewardAmountB,
+            rewardsDuration
+        );
     }
 
     function update(
@@ -93,6 +105,13 @@ contract StakingDualRewardsFactory is Ownable {
         info.rewardAmountA = rewardAmountA;
         info.rewardAmountB = rewardAmountB;
         info.duration = rewardsDuration;
+
+        emit Updated(
+            info.stakingRewards,
+            rewardAmountA,
+            rewardAmountB,
+            rewardsDuration
+        );
     }
 
     ///// permissionless functions
