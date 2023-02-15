@@ -25,7 +25,7 @@ contract StakingRewardsFactory is Ownable, IStakingRewardsFactory {
     mapping(address => StakingRewardsInfo)
         public stakingRewardsInfoByStakingToken;
 
-    constructor(uint256 _stakingRewardsGenesis) public Ownable() {
+    constructor(uint256 _stakingRewardsGenesis) Ownable() {
         require(_stakingRewardsGenesis >= block.timestamp, "GTS");
 
         stakingRewardsGenesis = _stakingRewardsGenesis;
