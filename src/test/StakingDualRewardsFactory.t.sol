@@ -251,4 +251,134 @@ contract StakingRewardsFactoryTest is Test {
         );
     }
 
+    // update functions
+
+    function testUpdateStakingContract() public {
+        deployStakingContract(
+            address(stakingToken),
+            address(rewardTokenA),
+            address(rewardTokenB),
+            200e18,
+            100e18,
+            2 days
+        );
+        hevm.warp(block.timestamp + 1 days);
+        uint256 futureDuration = block.timestamp + 5 days;
+        uint256 futureRewardAmountA = 250e18;
+        uint256 futureRewardAmountB = 200e18;
+        stakingDualRewardsFactory.update(
+            address(stakingToken),
+            futureRewardAmountA,
+            futureRewardAmountB,
+            futureDuration
+        );
+
+        (
+            ,
+            ,
+            ,
+            uint256 _rewardAmountA,
+            uint256 _rewardAmountB,
+            uint256 _duration
+        ) = stakingDualRewardsFactory.stakingRewardsInfoByStakingToken(
+                address(stakingToken)
+            );
+
+        assertEq(_duration, futureDuration);
+        assertEq(_rewardAmountA, futureRewardAmountA);
+        assertEq(_rewardAmountB, futureRewardAmountB);
+    }
+
+    function testUpdateStakingContractWithLessReward() public {
+        deployStakingContract(
+            address(stakingToken),
+            address(rewardTokenA),
+            address(rewardTokenB),
+            200e18,
+            100e18,
+            2 days
+        );
+        hevm.warp(block.timestamp + 1 days);
+        uint256 futureDuration = block.timestamp + 5 days;
+        uint256 futureRewardAmountA = 100e18;
+        uint256 futureRewardAmountB = 50e18;
+        stakingDualRewardsFactory.update(
+            address(stakingToken),
+            futureRewardAmountA,
+            futureRewardAmountB,
+            futureDuration
+        );
+
+        (
+            ,
+            ,
+            ,
+            uint256 _rewardAmountA,
+            uint256 _rewardAmountB,
+            uint256 _duration
+        ) = stakingDualRewardsFactory.stakingRewardsInfoByStakingToken(
+                address(stakingToken)
+            );
+
+        assertEq(_duration, futureDuration);
+        assertEq(_rewardAmountA, futureRewardAmountA);
+        assertEq(_rewardAmountB, futureRewardAmountB);
+    }
+
+    function testCannotUpdateStakingContract() public {
+        hevm.warp(block.timestamp + 1 days);
+        uint256 futureDuration = block.timestamp + 5 days;
+        uint256 futureRewardAmountA = 250e18;
+        uint256 futureRewardAmountB = 200e18;
+        hevm.expectRevert(bytes("UND"));
+        stakingDualRewardsFactory.update(
+            address(stakingToken),
+            futureRewardAmountA,
+            futureRewardAmountB,
+            futureDuration
+        );
+    }
+
+    function testCannotUpdateStakingContractWithOwner() public {
+        hevm.warp(block.timestamp + 1 days);
+        uint256 futureDuration = block.timestamp + 5 days;
+        hevm.expectRevert(bytes("Ownable: caller is not the owner"));
+        hevm.prank(alice);
+        stakingDualRewardsFactory.update(
+            address(stakingToken),
+            100e18,
+            200e18,
+            futureDuration
+        );
+    }
+
+    function testEmitUpdate() public {
+        deployStakingContract(
+            address(stakingToken),
+            address(rewardTokenA),
+            address(rewardTokenB),
+            200e18,
+            100e18,
+            2 days
+        );
+
+        hevm.warp(block.timestamp + 1 days);
+
+        uint256 futureDuration = block.timestamp + 5 days;
+        uint256 rewardAmount = 200e18;
+        hevm.recordLogs();
+
+        stakingDualRewardsFactory.update(
+            address(stakingToken),
+            200e18,
+            100e18,
+            futureDuration
+        );
+
+        Vm.Log[] memory entries = hevm.getRecordedLogs();
+
+        assertEq(abi.encode(200e18, 100e18, futureDuration), entries[0].data);
+    }
+
+    // NotifyRewardAmounts function
 }
