@@ -21,6 +21,16 @@ contract StakingRewardsFactoryTest is Test {
     address user1 = hevm.addr(3);
     address user2 = hevm.addr(4);
 
+    event Deployed(
+        address indexed stakingRewardContract,
+        address stakingToken,
+        address rewardTokenA,
+        address rewardTokenB,
+        uint256 rewardAmountA,
+        uint256 rewardAmountB,
+        uint256 rewardsDuration
+    );
+
     function setUp() public {
         stakingToken = new MockERC20("StakingToken", "ST");
         rewardTokenA = new MockERC20("RewardTokenA", "RTA");
@@ -211,6 +221,33 @@ contract StakingRewardsFactoryTest is Test {
             0,
             0,
             2 days
+        );
+    }
+
+    function tesEmitDeployEvent() public {
+        hevm.recordLogs();
+        stakingDualRewardsFactory.deploy(
+            address(this),
+            address(stakingToken),
+            address(rewardTokenA),
+            address(rewardTokenB),
+            200e18,
+            100e18,
+            2 days
+        );
+
+        Vm.Log[] memory entries = hevm.getRecordedLogs();
+
+        assertEq(
+            abi.encode(
+                address(stakingToken),
+                address(rewardTokenA),
+                address(rewardTokenB),
+                200e18,
+                100e18,
+                2 days
+            ),
+            entries[1].data
         );
     }
 
