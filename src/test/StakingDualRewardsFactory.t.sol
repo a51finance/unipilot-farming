@@ -12,6 +12,7 @@ contract StakingRewardsFactoryTest is Test {
     Vm hevm = Vm(0x7109709ECfa91a80626fF3989D68f67F5b1DD12D);
     StakingDualRewardsFactory public stakingDualRewardsFactory;
     StakingDualRewards public stakingDualRewards;
+    address public stakingDualRewardsContrat;
     MockERC20 public stakingToken;
     MockERC20 public rewardTokenA;
     MockERC20 public rewardTokenB;
@@ -63,6 +64,9 @@ contract StakingRewardsFactoryTest is Test {
             _rewardAmountB,
             _duration
         );
+
+        (stakingDualRewardsContrat, , , , , ) = stakingDualRewardsFactory
+            .stakingRewardsInfoByStakingToken(address(stakingToken));
 
         bool success1 = rewardTokenA.transfer(
             address(stakingDualRewardsFactory),
