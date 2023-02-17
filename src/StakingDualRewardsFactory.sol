@@ -50,7 +50,6 @@ contract StakingDualRewardsFactory is Ownable, IStakingDualRewardsFactory {
             rewardsTokenA != address(0) && rewardsTokenB != address(0),
             "IRT(s)"
         );
-        require(rewardAmountA > 0 && rewardAmountB > 0, "ZR");
 
         StakingRewardsInfo storage info = stakingRewardsInfoByStakingToken[
             stakingToken
