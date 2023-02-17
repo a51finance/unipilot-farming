@@ -20,14 +20,14 @@ contract DeployStakingDualRewardsFactoryScript is Script {
                 stakingRewardsGenesis
             );
 
-        IERC20(rewardsTokenA).transfer(
-            address(stakingDualRewardsFactory),
-            100e18
-        );
-        IERC20(rewardsTokenB).transfer(
-            address(stakingDualRewardsFactory),
-            100e18
-        );
+        // IERC20(rewardsTokenA).transfer(
+        //     address(stakingDualRewardsFactory),
+        //     100e18
+        // );
+        // IERC20(rewardsTokenB).transfer(
+        //     address(stakingDualRewardsFactory),
+        //     100e18
+        // );
 
         vm.stopBroadcast();
     }
