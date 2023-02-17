@@ -465,4 +465,74 @@ contract StakingRewardsFactoryTest is Test {
         hevm.expectRevert(bytes(""));
         stakingDualRewardsFactory.notifyRewardAmount(address(stakingToken));
     }
+
+    // pullExtraTokens
+    function testPullErc20RewardToken() public {
+        hevm.warp(block.timestamp + 10);
+
+        deployStakingContract(
+            address(stakingToken),
+            address(rewardTokenA),
+            address(rewardTokenB),
+            10e18,
+            20e18,
+            block.timestamp + 2 days
+        );
+
+        uint256 _balanceBeforeA = rewardTokenA.balanceOf(address(this));
+        uint256 _balanceBeforeB = rewardTokenB.balanceOf(address(this));
+
+        rewardTokenA.transfer(address(stakingDualRewardsFactory), 2948e18);
+        rewardTokenB.transfer(address(stakingDualRewardsFactory), 5840e18);
+
+        stakingDualRewardsFactory.notifyRewardAmount(address(stakingToken));
+
+        stakingDualRewardsFactory.pullExtraTokens(
+            address(rewardTokenA),
+            2948e18 - 10e18
+        );
+
+        stakingDualRewardsFactory.pullExtraTokens(
+            address(rewardTokenB),
+            5840e18 - 20e18
+        );
+
+        uint256 _balanceAferA = rewardTokenA.balanceOf(address(this));
+        uint256 _balanceAferB = rewardTokenB.balanceOf(address(this));
+
+        assertEq(_balanceAferA, _balanceBeforeA - 10e18);
+        assertEq(_balanceAferB, _balanceBeforeB - 20e18);
+    }
+
+    function testPullErc20RandomToken() public {
+        MockERC20 randomToken = new MockERC20("Random Token", "RT");
+
+        hevm.warp(block.timestamp + 10);
+
+        deployStakingContract(
+            address(stakingToken),
+            address(rewardTokenA),
+            address(rewardTokenB),
+            10e18,
+            20e18,
+            block.timestamp + 2 days
+        );
+
+        uint256 _balanceBefore = randomToken.balanceOf(address(this));
+
+        rewardTokenB.transfer(address(stakingDualRewardsFactory), 10e18);
+        rewardTokenA.transfer(address(stakingDualRewardsFactory), 20e18);
+        randomToken.transfer(address(stakingDualRewardsFactory), 4857e18);
+
+        stakingDualRewardsFactory.notifyRewardAmount(address(stakingToken));
+
+        stakingDualRewardsFactory.pullExtraTokens(
+            address(randomToken),
+            4857e18
+        );
+
+        uint256 _balanceAfer = randomToken.balanceOf(address(this));
+
+        assertEq(_balanceAfer, _balanceBefore);
+    }
 }
