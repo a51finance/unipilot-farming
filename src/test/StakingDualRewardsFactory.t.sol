@@ -51,10 +51,6 @@ contract StakingRewardsFactoryTest is Test {
     ) internal {
         hevm.warp(block.timestamp + 1 minutes);
 
-        // uint256 rewardAmountA = 200e18;
-        // uint256 rewardAmountB = 100e18;
-        // uint256 rewardsDuration = 30 days;
-
         stakingDualRewardsFactory.deploy(
             address(this),
             _stakingToken,
@@ -161,6 +157,39 @@ contract StakingRewardsFactoryTest is Test {
         assertEq(_duration, 2 days);
     }
 
+    function testDeployScenario1() public {
+        // for single token reward we need to provide the reward token the amount will be zero
+        hevm.warp(block.timestamp + 10);
+        hevm.recordLogs();
+
+        stakingDualRewardsFactory.deploy(
+            address(this),
+            address(stakingToken),
+            address(rewardTokenA),
+            address(rewardTokenB),
+            200e18,
+            0,
+            2 days
+        );
+
+        Vm.Log[] memory entries = hevm.getRecordedLogs();
+
+        (
+            address stakingDualRewardsContract,
+            ,
+            ,
+            ,
+            ,
+
+        ) = stakingDualRewardsFactory.stakingRewardsInfoByStakingToken(
+                address(stakingToken)
+            );
+
+        address stakingReward = address(uint160(uint256(entries[1].topics[1])));
+
+        assertEq(stakingReward, stakingDualRewardsContract);
+    }
+
     function testCannotDifferentAddressWithDeployment() public {
         hevm.warp(block.timestamp + 1 minutes);
 
@@ -212,17 +241,6 @@ contract StakingRewardsFactoryTest is Test {
             address(stakingToken),
             address(rewardTokenA),
             address(0),
-            0,
-            0,
-            2 days
-        );
-
-        hevm.expectRevert(bytes("ZR"));
-        stakingDualRewardsFactory.deploy(
-            address(this),
-            address(stakingToken),
-            address(rewardTokenA),
-            address(rewardTokenB),
             0,
             0,
             2 days
