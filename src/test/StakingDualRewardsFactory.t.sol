@@ -85,6 +85,7 @@ contract StakingRewardsFactoryTest is Test {
         }
     }
 
+    // Deploy Function Tests
     function testDeployStakingRewardsContract() public {
         hevm.warp(block.timestamp + 10);
         hevm.recordLogs();
@@ -369,7 +370,6 @@ contract StakingRewardsFactoryTest is Test {
         hevm.warp(block.timestamp + 1 days);
 
         uint256 futureDuration = block.timestamp + 5 days;
-        uint256 rewardAmount = 200e18;
         hevm.recordLogs();
 
         stakingDualRewardsFactory.update(
@@ -385,4 +385,84 @@ contract StakingRewardsFactoryTest is Test {
     }
 
     // NotifyRewardAmounts function
+    function testNotifyRewardAmount() public {
+        stakingToken = new MockERC20("Token Test Staking", "TTS");
+        deployStakingContract(
+            address(stakingToken),
+            address(rewardTokenA),
+            address(rewardTokenB),
+            10e18,
+            20e18,
+            block.timestamp + 2 days
+        );
+        assertEq(
+            rewardTokenA.balanceOf(address(stakingDualRewardsContrat)),
+            10e18
+        );
+        assertEq(
+            rewardTokenB.balanceOf(address(stakingDualRewardsContrat)),
+            20e18
+        );
+
+        stakingDualRewardsFactory.notifyRewardAmount(address(stakingToken));
+        assertEq(rewardTokenA.balanceOf(address(stakingDualRewardsFactory)), 0);
+        assertEq(rewardTokenB.balanceOf(address(stakingDualRewardsFactory)), 0);
+    }
+
+    mapping(uint256 => address) stakingContractInfo;
+
+    function testNotifyRewardAmounts() public {
+        for (uint256 i = 0; i < 5; i++) {
+            stakingToken = new MockERC20("Token Test Staking", "TTS");
+            stakingDualRewardsFactory.deploy(
+                address(this),
+                address(stakingToken),
+                address(rewardTokenA),
+                address(rewardTokenB),
+                20e18,
+                10e18,
+                2 days
+            );
+
+            (stakingDualRewardsContrat, , , , , ) = stakingDualRewardsFactory
+                .stakingRewardsInfoByStakingToken(address(stakingToken));
+
+            stakingContractInfo[i] = stakingDualRewardsContrat;
+
+            rewardTokenA.transfer(address(stakingDualRewardsFactory), 20e18);
+            rewardTokenB.transfer(address(stakingDualRewardsFactory), 10e18);
+        }
+        assertEq(
+            rewardTokenA.balanceOf(address(stakingDualRewardsFactory)),
+            20e18 * 5
+        );
+        assertEq(
+            rewardTokenB.balanceOf(address(stakingDualRewardsFactory)),
+            10e18 * 5
+        );
+        hevm.warp(block.timestamp + 1 minutes);
+        stakingDualRewardsFactory.notifyRewardAmounts();
+        console.log(stakingContractInfo[0]);
+        for (uint256 i = 0; i < 5; i++) {
+            assertEq(rewardTokenA.balanceOf(stakingContractInfo[i]), 20e18);
+            assertEq(rewardTokenB.balanceOf(stakingContractInfo[i]), 10e18);
+        }
+    }
+
+    function testCannotNotifyRewardWithoutAmounts() public {
+        stakingToken = new MockERC20("Token Test Staking", "TTS");
+        stakingDualRewardsFactory.deploy(
+            address(this),
+            address(stakingToken),
+            address(rewardTokenA),
+            address(rewardTokenB),
+            20e18,
+            10e18,
+            2 days
+        );
+
+        hevm.warp(block.timestamp + 1 minutes);
+        hevm.expectRevert(bytes(""));
+        stakingDualRewardsFactory.notifyRewardAmount(address(stakingToken));
+    }
 }
