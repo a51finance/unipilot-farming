@@ -225,4 +225,77 @@ contract StakingDualRewardsTest is Test {
         emit Withdrawn(address(this), 10e18);
         StakingDualRewards(stakingDualRewards).withdraw(withdrawAmount);
     }
+
+    // other functions
+
+    function testTotalSupply() public {
+        for (uint256 i = 1; i < 10; i++) {
+            stakeToken(10e18);
+        }
+        uint256 totalSupply = StakingDualRewards(stakingDualRewards)
+            .totalSupply();
+        assertEq(totalSupply, 10e18 * 9);
+    }
+
+    function testValuesBeforeFirstStake() public {
+        /**
+         *  rewardRate = reward Amount / reward Duration
+         *  rewardRate = 100e18 /  initialTime (initialTime is block.timestamp + 10 days)
+         */
+        assertEq(
+            StakingDualRewards(stakingDualRewards).rewardRateA(),
+            100e18 / initialTime
+        );
+
+        assertEq(
+            StakingDualRewards(stakingDualRewards).rewardRateB(),
+            150e18 / initialTime
+        );
+
+        /**
+         *  lastUpdateTime = block.timestamp
+         */
+
+        assertEq(
+            StakingDualRewards(stakingDualRewards).lastUpdateTime(),
+            block.timestamp
+        );
+
+        /**
+         *  Period Finish = block.timestamp + rewards Duration
+         *  Period Finish = block.timestamp + initialTime
+         */
+
+        assertEq(
+            StakingDualRewards(stakingDualRewards).periodFinish(),
+            block.timestamp + initialTime
+        );
+
+        /**
+         *  Reward per token stored before stake
+         */
+
+        assertEq(
+            StakingDualRewards(stakingDualRewards).rewardPerTokenAStored(),
+            0
+        );
+        assertEq(
+            StakingDualRewards(stakingDualRewards).rewardPerTokenBStored(),
+            0
+        );
+
+        /**
+         *  Reward per token before stake will be 0 because totalSupply is 0
+         */
+        assertEq(
+            StakingDualRewards(stakingDualRewards).rewardPerTokenA(),
+            StakingDualRewards(stakingDualRewards).totalSupply()
+        );
+
+        assertEq(
+            StakingDualRewards(stakingDualRewards).rewardPerTokenB(),
+            StakingDualRewards(stakingDualRewards).totalSupply()
+        );
+    }
+
 }
