@@ -22,7 +22,7 @@ contract StakingDualRewardsTest is Test {
         );
 
     StakingDualRewardsFactory public stakingDualRewardsFactory;
-    address public stakingDualRewardsContrat;
+    address public stakingDualRewards;
     MockERC20 public stakingToken;
     MockERC20 public rewardTokenA;
     MockERC20 public rewardTokenB;
@@ -58,7 +58,7 @@ contract StakingDualRewardsTest is Test {
             _duration
         );
 
-        (stakingDualRewardsContrat, , , , , ) = stakingDualRewardsFactory
+        (stakingDualRewards, , , , , ) = stakingDualRewardsFactory
             .stakingRewardsInfoByStakingToken(address(stakingToken));
 
         bool success1 = rewardTokenA.transfer(
@@ -79,8 +79,8 @@ contract StakingDualRewardsTest is Test {
     }
 
     function stakeToken(uint256 _stakeAmount) public {
-        stakingToken.approve(stakingDualRewardsContrat, _stakeAmount);
-        StakingDualRewards(stakingDualRewardsContrat).stake(_stakeAmount);
+        stakingToken.approve(stakingDualRewards, _stakeAmount);
+        StakingDualRewards(stakingDualRewards).stake(_stakeAmount);
     }
 
     function setUp() public {
@@ -88,7 +88,9 @@ contract StakingDualRewardsTest is Test {
         rewardTokenA = new MockERC20("RewardTokenA", "RTA");
         rewardTokenB = new MockERC20("RewardTokenB", "RTB");
         initialTime = (30 * 24 * 60 * 60);
-        stakingDualRewardsFactory = new StakingDualRewardsFactory(initialTime);
+        stakingDualRewardsFactory = new StakingDualRewardsFactory(
+            block.timestamp + 1 minutes
+        );
         deployStakingContract(
             address(stakingToken),
             address(rewardTokenA),
@@ -97,5 +99,42 @@ contract StakingDualRewardsTest is Test {
             150e18,
             initialTime
         );
+    }
+
+    function testStake() public {
+        uint256 _stakeAmount = 1e18;
+        stakingToken.approve(stakingDualRewards, _stakeAmount);
+        hevm.expectEmit(true, false, false, false);
+        emit Staked(address(this), _stakeAmount);
+        StakingDualRewards(stakingDualRewards).stake(_stakeAmount);
+        hevm.warp(block.timestamp + 2 days);
+    }
+
+    function testCannotStakeZero() public {
+        stakingToken.approve(stakingDualRewards, 0);
+        hevm.expectRevert(bytes("CSZ"));
+        StakingDualRewards(stakingDualRewards).stake(0);
+    }
+
+    function testMultipleStake() public {
+        for (uint256 i = 1; i < 10; i++) {
+            uint256 _stakeAmount = i * 1e18;
+            stakingToken.approve(stakingDualRewards, _stakeAmount);
+            hevm.expectEmit(true, false, false, false);
+            emit Staked(address(this), _stakeAmount);
+            StakingDualRewards(stakingDualRewards).stake(_stakeAmount);
+        }
+    }
+
+    function testStakeFuzz(uint128 _amount) public {
+        stakingToken.approve(stakingDualRewards, _amount);
+        if (_amount > 0) {
+            hevm.expectEmit(true, false, false, false);
+            emit Staked(address(this), _amount);
+            StakingDualRewards(stakingDualRewards).stake(_amount);
+        } else {
+            hevm.expectRevert(bytes("CSZ"));
+            StakingDualRewards(stakingDualRewards).stake(_amount);
+        }
     }
 }
