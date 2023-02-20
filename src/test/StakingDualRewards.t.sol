@@ -366,4 +366,74 @@ contract StakingDualRewardsTest is Test {
             )
         );
     }
+
+    // reward Earned
+
+    function testEarnedValue() public {
+        /**
+         * _balances[account] will return user's balance
+         * _balances[account] = 10e18
+         * userRewardPerTokenPaid will be 0
+         * Since user hasn't claimed any reward yet
+         * userRewardPerTokenPaid = 0
+         * rewards[user] will be 0 since its first stake
+         * rewards[user] = 0
+         */
+
+        stakeToken(10e18);
+        hevm.warp(block.timestamp + 1 minutes);
+
+        uint256 earnedABeforeRewardClaim = ((10e18 *
+            StakingDualRewards(stakingDualRewards).rewardPerTokenA()) / 1e18) +
+            0;
+
+        assertEq(
+            earnedABeforeRewardClaim,
+            StakingDualRewards(stakingDualRewards).earnedA(address(this))
+        );
+
+        uint256 earnedBBeforeRewardClaim = ((10e18 *
+            StakingDualRewards(stakingDualRewards).rewardPerTokenB()) / 1e18) +
+            0;
+
+        assertEq(
+            earnedBBeforeRewardClaim,
+            StakingDualRewards(stakingDualRewards).earnedB(address(this))
+        );
+
+        // After claiming Reward
+        uint256 previousRewardPerTokenA = StakingDualRewards(stakingDualRewards)
+            .rewardPerTokenA();
+
+        uint256 previousRewardPerTokenB = StakingDualRewards(stakingDualRewards)
+            .rewardPerTokenB();
+
+        StakingDualRewards(stakingDualRewards).getReward();
+
+        stakeToken(10e18);
+        stakeToken(20e18);
+        hevm.warp(block.timestamp + 2 minutes);
+
+        uint256 earnedAAfterStakesAndClaim = ((10e18 + 20e18 + 10e18) *
+            (StakingDualRewards(stakingDualRewards).rewardPerTokenA() -
+                previousRewardPerTokenA)) /
+            1e18 +
+            0;
+
+        uint256 earnedBAfterStakesAndClaim = ((10e18 + 20e18 + 10e18) *
+            (StakingDualRewards(stakingDualRewards).rewardPerTokenB() -
+                previousRewardPerTokenB)) /
+            1e18 +
+            0;
+
+        assertEq(
+            earnedAAfterStakesAndClaim,
+            StakingDualRewards(stakingDualRewards).earnedA(address(this))
+        );
+
+        assertEq(
+            earnedBAfterStakesAndClaim,
+            StakingDualRewards(stakingDualRewards).earnedB(address(this))
+        );
+    }
 }
