@@ -339,4 +339,31 @@ contract StakingDualRewardsTest is Test {
         );
     }
 
+    function testRewardPerTokenPaidAfterStakes() public {
+        stakeToken(10e18);
+        hevm.warp(block.timestamp + 1 minutes);
+        uint256 previousRewardPerTokenA = StakingDualRewards(stakingDualRewards)
+            .rewardPerTokenA();
+
+        uint256 previousRewardPerTokenB = StakingDualRewards(stakingDualRewards)
+            .rewardPerTokenB();
+
+        StakingDualRewards(stakingDualRewards).getReward();
+        stakeToken(10e18);
+        stakeToken(20e18);
+        hevm.warp(block.timestamp + 2 minutes);
+        assertEq(
+            previousRewardPerTokenA,
+            StakingDualRewards(stakingDualRewards).userRewardPerTokenAPaid(
+                address(this)
+            )
+        );
+
+        assertEq(
+            previousRewardPerTokenB,
+            StakingDualRewards(stakingDualRewards).userRewardPerTokenBPaid(
+                address(this)
+            )
+        );
+    }
 }
