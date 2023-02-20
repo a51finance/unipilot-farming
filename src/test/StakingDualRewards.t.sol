@@ -126,6 +126,79 @@ contract StakingDualRewardsTest is Test {
         }
     }
 
+    function testStakeWithoutNotifying() public {
+        uint256 _stakeAmount = 10e18;
+        bool _rewardA;
+        bool _rewardB;
+        MockERC20 stakingTokenTest = new MockERC20("Token  Staking", "TS");
+
+        // deploy staking vault
+        stakingDualRewardsFactory.deploy(
+            address(this),
+            address(stakingTokenTest),
+            address(rewardTokenA),
+            address(rewardTokenB),
+            10e18,
+            20e18,
+            initialTime
+        );
+
+        (stakingDualRewards, , , , , ) = stakingDualRewardsFactory
+            .stakingRewardsInfoByStakingToken(address(stakingTokenTest));
+        // approve tokens
+
+        stakingTokenTest.approve(stakingDualRewards, _stakeAmount);
+
+        // stake
+
+        StakingDualRewards(stakingDualRewards).stake(_stakeAmount);
+
+        // fast forward 10 mins
+
+        hevm.warp(block.timestamp + 10 minutes);
+
+        assertEq(
+            0,
+            StakingDualRewards(stakingDualRewards).earnedA(address(this))
+        );
+
+        assertEq(
+            0,
+            StakingDualRewards(stakingDualRewards).earnedB(address(this))
+        );
+
+        // Transfer tokens to factory and run notify
+
+        bool success = rewardTokenA.transfer(
+            address(stakingDualRewardsFactory),
+            10e18
+        );
+
+        success = rewardTokenB.transfer(
+            address(stakingDualRewardsFactory),
+            20e18
+        );
+
+        if (success) {
+            stakingDualRewardsFactory.notifyRewardAmounts();
+        } else {
+            revert("Transfer Failed");
+        }
+
+        // fast forward 10 mins
+
+        hevm.warp(block.timestamp + 10 minutes);
+
+        // Check reward Again
+        _rewardA =
+            StakingDualRewards(stakingDualRewards).earnedA(address(this)) > 0;
+        _rewardB =
+            StakingDualRewards(stakingDualRewards).earnedB(address(this)) > 0;
+
+        assertEq(_rewardA, true);
+        assertEq(_rewardB, true);
+    }
+
     function testStakeFuzz(uint128 _amount) public {
         stakingToken.approve(stakingDualRewards, _amount);
         if (_amount > 0) {

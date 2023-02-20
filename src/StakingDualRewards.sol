@@ -3,13 +3,10 @@ pragma solidity ^0.7.6;
 
 import "./interfaces/IStakingDualRewards.sol";
 import "./interfaces/SafeERC20.sol";
-
 import "./libraries/SafeMath.sol";
 import "./libraries/Math.sol";
-
 import "./base/DualRewardsDistributionRecipient.sol";
 import "./base/Pausable.sol";
-
 import "openzeppelin-contracts/contracts/utils/ReentrancyGuard.sol";
 
 contract StakingDualRewards is
@@ -49,11 +46,8 @@ contract StakingDualRewards is
         address _rewardsTokenA,
         address _rewardsTokenB,
         address _stakingToken
-    ) public Ownable() {
-        require(
-            _rewardsTokenA != _rewardsTokenB,
-            "rewards tokens should be different"
-        );
+    ) Ownable() {
+        require(_rewardsTokenA != _rewardsTokenB, "SRT");
         rewardsTokenA = IERC20(_rewardsTokenA);
         rewardsTokenB = IERC20(_rewardsTokenB);
         stakingToken = IERC20(_stakingToken);
@@ -133,7 +127,7 @@ contract StakingDualRewards is
         notPaused
         updateReward(msg.sender)
     {
-        require(amount > 0, "Cannot stake 0");
+        require(amount > 0, "CSZ");
         _totalSupply = _totalSupply.add(amount);
         _balances[msg.sender] = _balances[msg.sender].add(amount);
         stakingToken.safeTransferFrom(msg.sender, address(this), amount);
