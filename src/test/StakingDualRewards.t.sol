@@ -210,4 +210,19 @@ contract StakingDualRewardsTest is Test {
             StakingDualRewards(stakingDualRewards).stake(_amount);
         }
     }
+
+    // Withdraw Function
+    function testCannotWithdrawZero() public {
+        hevm.expectRevert(bytes("CWZ"));
+        StakingDualRewards(stakingDualRewards).withdraw(0);
+    }
+
+    function testWithdraw() public {
+        stakeToken(10e18);
+        hevm.expectEmit(true, false, false, false);
+        uint256 withdrawAmount = StakingDualRewards(stakingDualRewards)
+            .balanceOf(address(this));
+        emit Withdrawn(address(this), 10e18);
+        StakingDualRewards(stakingDualRewards).withdraw(withdrawAmount);
+    }
 }
