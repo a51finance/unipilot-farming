@@ -684,4 +684,116 @@ contract StakingDualRewardsTest is Test {
         hevm.stopPrank();
     }
 
+    // Notify Reward Amount
+    function testCannotPassRequireChecksNotifyRewardAmount() public {
+        stakingDualRewardsFactory = new StakingDualRewardsFactory(
+            block.timestamp + 1
+        );
+        uint256 iTime = block.timestamp + 10 days;
+        deployStakingContract(
+            address(stakingToken),
+            address(rewardTokenA),
+            address(rewardTokenB),
+            100e18,
+            150e18,
+            iTime
+        );
+
+        // reducing existing period
+
+        hevm.expectRevert(bytes("CRP"));
+        hevm.prank(address(stakingDualRewardsFactory));
+        StakingDualRewards(stakingDualRewards).notifyRewardAmount(
+            20e18,
+            15e18,
+            block.timestamp + 2 days
+        );
+        uint256 _periodFinish = 0;
+        uint256 _rewardRateA = 0;
+        uint256 _rewardRateB = 0;
+        if (block.timestamp >= _periodFinish) {
+            _rewardRateA = 100e18 / iTime;
+            _rewardRateB = 150e18 / iTime;
+            assertEq(
+                _rewardRateA,
+                StakingDualRewards(stakingDualRewards).rewardRateA()
+            );
+            assertEq(
+                _rewardRateB,
+                StakingDualRewards(stakingDualRewards).rewardRateB()
+            );
+        }
+
+        // Providing too high reward
+
+        hevm.warp(block.timestamp + 7 days);
+        uint256 newDuration = block.timestamp + 5 days;
+        hevm.expectRevert(bytes("RATH"));
+        hevm.prank(address(stakingDualRewardsFactory));
+        StakingDualRewards(stakingDualRewards).notifyRewardAmount(
+            2000000e18,
+            1500000e18,
+            newDuration
+        );
+
+        hevm.expectRevert(bytes("RBTH"));
+        hevm.prank(address(stakingDualRewardsFactory));
+        StakingDualRewards(stakingDualRewards).notifyRewardAmount(
+            0,
+            1500000e18,
+            newDuration
+        );
+    }
+
+    function testNotifyingSinlgeTokenReward() public {
+        stakingDualRewardsFactory = new StakingDualRewardsFactory(
+            block.timestamp + 1
+        );
+        uint256 iTime = block.timestamp + 10 days;
+        deployStakingContract(
+            address(stakingToken),
+            address(rewardTokenA),
+            address(rewardTokenB),
+            10000e18,
+            15000e18,
+            iTime
+        );
+
+        hevm.warp(iTime);
+
+        uint256 newDuration = block.timestamp + 100 days;
+        // uint256 newAmountA = 150e18;
+        // uint256 newAmountB = 250e18;
+
+        // uint256 balanceA = rewardTokenA.balanceOf(address(stakingDualRewards));
+        // uint256 balanceB = rewardTokenB.balanceOf(address(stakingDualRewards));
+
+        // uint256 rewardRateA = newAmountA / newDuration;
+        // uint256 rewardRateB = newAmountB / newDuration;
+
+        // console.log(rewardRateA, balanceA / newDuration);
+        // console.log(rewardRateB, balanceB / newDuration);
+
+        // console.log(rewardRateA <= balanceA / newDuration);
+        // console.log(rewardRateB <= balanceB / newDuration);
+
+        rewardTokenA.transfer(address(stakingDualRewardsFactory), 1000e18);
+        // rewardB.transfer()
+        hevm.prank(address(stakingDualRewardsFactory));
+        StakingDualRewards(stakingDualRewards).notifyRewardAmount(
+            200e18,
+            0,
+            newDuration
+        );
+        hevm.warp(newDuration);
+        newDuration = block.timestamp + 10 days;
+        rewardTokenB.transfer(address(stakingDualRewardsFactory), 1000e18);
+        hevm.prank(address(stakingDualRewardsFactory));
+        StakingDualRewards(stakingDualRewards).notifyRewardAmount(
+            0,
+            200e18,
+            newDuration
+        );
+    }
+
 }
