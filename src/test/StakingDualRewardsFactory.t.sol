@@ -109,7 +109,7 @@ contract StakingRewardsFactoryTest is Test {
                 address(stakingToken)
             );
 
-        address stakingReward = address(uint160(uint256(entries[1].topics[1])));
+        address stakingReward = address(uint160(uint256(entries[2].topics[1])));
 
         assertEq(stakingReward, stakingDualRewardsContract);
     }
@@ -147,7 +147,7 @@ contract StakingRewardsFactoryTest is Test {
 
         Vm.Log[] memory entries = hevm.getRecordedLogs();
         assertEq(
-            address(uint160(uint256(entries[1].topics[1]))),
+            address(uint160(uint256(entries[2].topics[1]))),
             _stakingDualRewardsContract
         );
         assertEq(_rewardTokenA, address(rewardTokenA));
@@ -185,7 +185,7 @@ contract StakingRewardsFactoryTest is Test {
                 address(stakingToken)
             );
 
-        address stakingReward = address(uint160(uint256(entries[1].topics[1])));
+        address stakingReward = address(uint160(uint256(entries[2].topics[1])));
 
         assertEq(stakingReward, stakingDualRewardsContract);
     }
