@@ -459,4 +459,191 @@ contract StakingDualRewardsTest is Test {
         assertEq(expectedRewardB, _balanceAfterB - _balanceBeforeB);
     }
 
+    function testEarnedValueWithMultipleUsers() public {
+        stakingToken.transfer(alice, 10000e18);
+        stakingToken.transfer(bob, 10000e18);
+        uint256 aliceEarnedA;
+        uint256 aliceEarnedB;
+        uint256 bobEarnedA;
+        uint256 bobEarnedB;
+
+        stakeToken(15e18);
+
+        uint256 user1EarnedA = 15e18 *
+            ((StakingDualRewards(stakingDualRewards).rewardPerTokenA() - 0) /
+                1e18) +
+            0;
+
+        uint256 user1EarnedB = 15e18 *
+            ((StakingDualRewards(stakingDualRewards).rewardPerTokenB() - 0) /
+                1e18) +
+            0;
+        assertEq(
+            user1EarnedA,
+            StakingDualRewards(stakingDualRewards).earnedA(address(this))
+        );
+
+        assertEq(
+            user1EarnedB,
+            StakingDualRewards(stakingDualRewards).earnedB(address(this))
+        );
+
+        // alice
+
+        hevm.startPrank(alice);
+
+        stakeToken(10e18);
+        hevm.warp(block.timestamp + 1 minutes);
+
+        aliceEarnedA =
+            (10e18 *
+                (StakingDualRewards(stakingDualRewards).rewardPerTokenA() -
+                    0)) /
+            1e18;
+
+        aliceEarnedB =
+            (10e18 *
+                (StakingDualRewards(stakingDualRewards).rewardPerTokenB() -
+                    0)) /
+            1e18;
+
+        assertEq(
+            aliceEarnedA,
+            StakingDualRewards(stakingDualRewards).earnedA(address(alice))
+        );
+
+        assertEq(
+            aliceEarnedB,
+            StakingDualRewards(stakingDualRewards).earnedB(address(alice))
+        );
+
+        uint256 previousRewardA = aliceEarnedA;
+        uint256 previousRewardB = aliceEarnedB;
+
+        StakingDualRewards(stakingDualRewards).getReward();
+        assertEq(rewardTokenA.balanceOf(alice), aliceEarnedA);
+        assertEq(rewardTokenB.balanceOf(alice), aliceEarnedB);
+
+        previousRewardA = 0;
+        previousRewardB = 0;
+
+        uint256 previousRewardPerTokenA = StakingDualRewards(stakingDualRewards)
+            .rewardPerTokenA();
+
+        uint256 previousRewardPerTokenB = StakingDualRewards(stakingDualRewards)
+            .rewardPerTokenB();
+
+        assertEq(
+            previousRewardPerTokenA,
+            StakingDualRewards(stakingDualRewards).userRewardPerTokenAPaid(
+                alice
+            )
+        );
+
+        assertEq(
+            previousRewardPerTokenB,
+            StakingDualRewards(stakingDualRewards).userRewardPerTokenBPaid(
+                alice
+            )
+        );
+
+        uint256 balance = StakingDualRewards(stakingDualRewards).balanceOf(
+            alice
+        );
+
+        uint256 previouslyEarnedA = (balance *
+            (StakingDualRewards(stakingDualRewards).rewardPerTokenA() -
+                previousRewardPerTokenA)) / 1e18;
+
+        uint256 previouslyEarnedB = (balance *
+            (StakingDualRewards(stakingDualRewards).rewardPerTokenB() -
+                previousRewardPerTokenB)) / 1e18;
+
+        stakeToken(25e18);
+
+        hevm.warp(block.timestamp + 2 minutes);
+
+        previouslyEarnedA = StakingDualRewards(stakingDualRewards).earnedA(
+            alice
+        );
+        previousRewardPerTokenA = StakingDualRewards(stakingDualRewards)
+            .rewardPerTokenA();
+
+        previouslyEarnedB = StakingDualRewards(stakingDualRewards).earnedB(
+            alice
+        );
+        previousRewardPerTokenB = StakingDualRewards(stakingDualRewards)
+            .rewardPerTokenB();
+
+        previousRewardA = previouslyEarnedA;
+        previousRewardB = previouslyEarnedB;
+
+        stakeToken(45e18);
+
+        hevm.warp(block.timestamp + 5 minutes);
+        balance = StakingDualRewards(stakingDualRewards).balanceOf(alice);
+
+        aliceEarnedA =
+            ((balance *
+                (StakingDualRewards(stakingDualRewards).rewardPerTokenA() -
+                    previousRewardPerTokenA)) / 1e18) +
+            previousRewardA;
+
+        aliceEarnedB =
+            ((balance *
+                (StakingDualRewards(stakingDualRewards).rewardPerTokenB() -
+                    previousRewardPerTokenB)) / 1e18) +
+            previousRewardB;
+
+        assertEq(
+            aliceEarnedA,
+            StakingDualRewards(stakingDualRewards).earnedA(address(alice))
+        );
+
+        assertEq(
+            aliceEarnedB,
+            StakingDualRewards(stakingDualRewards).earnedB(address(alice))
+        );
+
+        hevm.stopPrank();
+
+        // bob
+
+        hevm.startPrank(bob);
+        previousRewardPerTokenA = StakingDualRewards(stakingDualRewards)
+            .rewardPerTokenA();
+        previousRewardA = 0;
+
+        previousRewardPerTokenB = StakingDualRewards(stakingDualRewards)
+            .rewardPerTokenB();
+        previousRewardB = 0;
+
+        stakeToken(300e18);
+        balance = StakingDualRewards(stakingDualRewards).balanceOf(bob);
+        bobEarnedA =
+            balance *
+            ((StakingDualRewards(stakingDualRewards).rewardPerTokenA() - 0) /
+                1e18) +
+            0;
+
+        bobEarnedB =
+            balance *
+            ((StakingDualRewards(stakingDualRewards).rewardPerTokenB() - 0) /
+                1e18) +
+            0;
+
+        assertEq(
+            bobEarnedA,
+            StakingDualRewards(stakingDualRewards).earnedA(address(bob))
+        );
+
+        assertEq(
+            bobEarnedB,
+            StakingDualRewards(stakingDualRewards).earnedB(address(bob))
+        );
+
+        hevm.stopPrank();
+
+        hevm.warp(block.timestamp + 1 minutes);
+    }
 }
