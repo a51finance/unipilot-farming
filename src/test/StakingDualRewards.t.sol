@@ -436,4 +436,27 @@ contract StakingDualRewardsTest is Test {
             StakingDualRewards(stakingDualRewards).earnedB(address(this))
         );
     }
+
+    function testGetReward() public {
+        stakeToken(10e18);
+        hevm.warp(block.timestamp + 1 minutes);
+
+        uint256 expectedRewardA = StakingDualRewards(stakingDualRewards)
+            .earnedA(address(this));
+
+        uint256 expectedRewardB = StakingDualRewards(stakingDualRewards)
+            .earnedB(address(this));
+
+        uint256 _balanceBeforeA = rewardTokenA.balanceOf(address(this));
+        uint256 _balanceBeforeB = rewardTokenB.balanceOf(address(this));
+
+        StakingDualRewards(stakingDualRewards).getReward();
+
+        uint256 _balanceAfterA = rewardTokenA.balanceOf(address(this));
+        uint256 _balanceAfterB = rewardTokenB.balanceOf(address(this));
+
+        assertEq(expectedRewardA, _balanceAfterA - _balanceBeforeA);
+        assertEq(expectedRewardB, _balanceAfterB - _balanceBeforeB);
+    }
+
 }
