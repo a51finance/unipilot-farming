@@ -646,6 +646,7 @@ contract StakingDualRewardsTest is Test {
 
         hevm.warp(block.timestamp + 1 minutes);
     }
+
     function testExitFunction() public {
         stakingToken.transfer(user2, 200e18);
 
@@ -796,4 +797,39 @@ contract StakingDualRewardsTest is Test {
         );
     }
 
+    // recoverERC20
+    function testRecoverERC20() public {
+        MockERC20 testToken = new MockERC20("StakingTokenTest", "STT");
+        uint256 stakedAmount = 50e18;
+        stakeToken(stakedAmount);
+        testToken.transfer(address(stakingDualRewards), 10000e18);
+
+        StakingDualRewards(stakingDualRewards).recoverERC20(
+            address(testToken),
+            10000e18 / 2
+        );
+
+        assertEq(
+            testToken.balanceOf(address(stakingDualRewards)),
+            10000e18 / 2
+        );
+
+        hevm.expectRevert(bytes("CWT"));
+        StakingDualRewards(stakingDualRewards).recoverERC20(
+            address(stakingToken),
+            stakedAmount
+        );
+        uint256 contractBalanceBefore = rewardTokenA.balanceOf(
+            address(stakingDualRewards)
+        );
+        StakingDualRewards(stakingDualRewards).recoverERC20(
+            address(rewardTokenA),
+            stakedAmount
+        );
+
+        assertEq(
+            rewardTokenA.balanceOf(address(stakingDualRewards)),
+            contractBalanceBefore - stakedAmount
+        );
+    }
 }
