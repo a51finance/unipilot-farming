@@ -646,4 +646,42 @@ contract StakingDualRewardsTest is Test {
 
         hevm.warp(block.timestamp + 1 minutes);
     }
+    function testExitFunction() public {
+        stakingToken.transfer(user2, 200e18);
+
+        hevm.startPrank(user2);
+
+        stakeToken(200e18);
+
+        hevm.warp(block.timestamp + 10 minutes);
+
+        uint256 rewardA = StakingDualRewards(stakingDualRewards).earnedA(
+            address(user2)
+        );
+        uint256 rewardB = StakingDualRewards(stakingDualRewards).earnedB(
+            address(user2)
+        );
+
+        StakingDualRewards(stakingDualRewards).exit();
+
+        uint256 finalOutPutA = stakingToken.balanceOf(address(user2)) +
+            rewardTokenA.balanceOf(address(user2));
+
+        uint256 finalOutPutB = stakingToken.balanceOf(address(user2)) +
+            rewardTokenB.balanceOf(address(user2));
+
+        uint256 expectedOutPutA = rewardA + 200e18;
+        uint256 expectedOutPutB = rewardB + 200e18;
+
+        assertEq(finalOutPutA, expectedOutPutA);
+        assertEq(finalOutPutB, expectedOutPutB);
+
+        assertEq(
+            StakingDualRewards(stakingDualRewards).balanceOf(address(user2)),
+            0
+        );
+
+        hevm.stopPrank();
+    }
+
 }
