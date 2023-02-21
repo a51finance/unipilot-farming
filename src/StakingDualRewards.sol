@@ -8,6 +8,7 @@ import "./libraries/Math.sol";
 import "./base/DualRewardsDistributionRecipient.sol";
 import "./base/Pausable.sol";
 import "openzeppelin-contracts/contracts/utils/ReentrancyGuard.sol";
+import "openzeppelin-contracts/contracts/access/Ownable.sol";
 
 contract StakingDualRewards is
     IStakingDualRewards,
@@ -47,6 +48,7 @@ contract StakingDualRewards is
         address _rewardsTokenB,
         address _stakingToken
     ) Ownable() {
+        transferOwnership(_owner);
         require(_rewardsTokenA != _rewardsTokenB, "SRT");
         rewardsTokenA = IERC20(_rewardsTokenA);
         rewardsTokenB = IERC20(_rewardsTokenB);
@@ -140,7 +142,7 @@ contract StakingDualRewards is
         nonReentrant
         updateReward(msg.sender)
     {
-        require(amount > 0, "Cannot withdraw 0");
+        require(amount > 0, "CWZ");
         _totalSupply = _totalSupply.sub(amount);
         _balances[msg.sender] = _balances[msg.sender].sub(amount);
         stakingToken.safeTransfer(msg.sender, amount);
@@ -175,10 +177,7 @@ contract StakingDualRewards is
         uint256 rewardB,
         uint256 rewardsDuration
     ) external override onlyDualRewardsDistribution updateReward(address(0)) {
-        require(
-            block.timestamp.add(rewardsDuration) >= periodFinish,
-            "Cannot reduce existing period"
-        );
+        require(block.timestamp.add(rewardsDuration) >= periodFinish, "CRP");
 
         if (block.timestamp >= periodFinish) {
             rewardRateA = rewardA.div(rewardsDuration);
@@ -198,16 +197,10 @@ contract StakingDualRewards is
         // very high values of rewardRate in the earned and rewardsPerToken functions;
         // Reward + leftover must be less than 2^256 / 10^18 to avoid overflow.
         uint256 balanceA = rewardsTokenA.balanceOf(address(this));
-        require(
-            rewardRateA <= balanceA.div(rewardsDuration),
-            "Provided reward-A too high"
-        );
+        require(rewardRateA <= balanceA.div(rewardsDuration), "RATH");
 
         uint256 balanceB = rewardsTokenB.balanceOf(address(this));
-        require(
-            rewardRateB <= balanceB.div(rewardsDuration),
-            "Provided reward-B too high"
-        );
+        require(rewardRateB <= balanceB.div(rewardsDuration), "RBTH");
 
         lastUpdateTime = block.timestamp;
         periodFinish = block.timestamp.add(rewardsDuration);
@@ -219,10 +212,7 @@ contract StakingDualRewards is
         external
         onlyOwner
     {
-        require(
-            tokenAddress != address(stakingToken),
-            "Cannot withdraw the staking token"
-        );
+        require(tokenAddress != address(stakingToken), "CWT");
         IERC20(tokenAddress).safeTransfer(owner(), tokenAmount);
         emit Recovered(tokenAddress, tokenAmount);
     }
