@@ -686,6 +686,45 @@ contract StakingRewardsTest is Test {
             StakingRewards(stakingContract).rewardPerTokenStored()
         );
     }
+
+    function testScenario5() public {
+        MockERC20 stakingTokenTest = new MockERC20("STT", "STT");
+        hevm.warp(block.timestamp + 10);
+        stakingRewardsFactory.deploy(
+            address(stakingTokenTest),
+            address(rewardToken),
+            86400e18,
+            86400
+        );
+
+        bool success = rewardToken.transfer(
+            address(stakingRewardsFactory),
+            86400e18
+        );
+        if (success) {
+            stakingRewardsFactory.notifyRewardAmounts();
+        } else {
+            revert("Transfer Failed");
+        }
+
+        (stakingContract, , , ) = stakingRewardsFactory
+            .stakingRewardsInfoByStakingToken(address(stakingTokenTest));
+
+        console.log(StakingRewards(stakingContract).rewardRate() / 1e18);
+        stakingTokenTest.approve(stakingContract, 100e18);
+        StakingRewards(stakingContract).stake(100e18);
+        stakingTokenTest.transfer(address(alice), 200e18);
+        hevm.prank(alice);
+        stakingTokenTest.approve(stakingContract, 200e18);
+        hevm.prank(alice);
+        StakingRewards(stakingContract).stake(200e18);
+
+        hevm.warp(block.timestamp + 86400);
+
+        console.log(StakingRewards(stakingContract).earned(address(this)));
+
+        console.log(StakingRewards(stakingContract).earned(address(alice)));
+    }
 }
 
 /**
