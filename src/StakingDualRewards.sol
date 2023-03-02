@@ -42,13 +42,11 @@ contract StakingDualRewards is
     /* ========== CONSTRUCTOR ========== */
 
     constructor(
-        address _owner,
         address _dualRewardsDistribution,
         address _rewardsTokenA,
         address _rewardsTokenB,
         address _stakingToken
-    ) Ownable() {
-        transferOwnership(_owner);
+    ) {
         require(_rewardsTokenA != _rewardsTokenB, "SRT");
         rewardsTokenA = IERC20(_rewardsTokenA);
         rewardsTokenB = IERC20(_rewardsTokenB);
