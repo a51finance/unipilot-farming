@@ -61,13 +61,14 @@ contract StakingDualRewardsFactory is Ownable, IStakingDualRewardsFactory {
             new StakingDualRewards{
                 salt: keccak256(
                     abi.encodePacked(
+                        _owner,
                         address(this),
                         rewardsTokenA,
                         rewardsTokenB,
                         stakingToken
                     )
                 )
-            }(address(this), rewardsTokenA, rewardsTokenB, stakingToken)
+            }(_owner, address(this), rewardsTokenA, rewardsTokenB, stakingToken)
         );
 
         info.rewardsTokenA = rewardsTokenA;
