@@ -675,10 +675,10 @@ contract StakingRewardsTest is Test {
 
         // previousRewardPerToken should be equal to
         // rewardPerTokenStored
-        console.log(
-            previousRewardPerToken,
-            StakingRewards(stakingContract).rewardPerTokenStored()
-        );
+        // console.log(
+        //     previousRewardPerToken,
+        //     StakingRewards(stakingContract).rewardPerTokenStored()
+        // );
 
         // Pass the test
         assertEq(
@@ -710,7 +710,7 @@ contract StakingRewardsTest is Test {
         (stakingContract, , , ) = stakingRewardsFactory
             .stakingRewardsInfoByStakingToken(address(stakingTokenTest));
 
-        console.log(StakingRewards(stakingContract).rewardRate() / 1e18);
+        // console.log(StakingRewards(stakingContract).rewardRate() / 1e18);
         stakingTokenTest.approve(stakingContract, 100e18);
         StakingRewards(stakingContract).stake(100e18);
         stakingTokenTest.transfer(address(alice), 200e18);
@@ -721,9 +721,32 @@ contract StakingRewardsTest is Test {
 
         hevm.warp(block.timestamp + 86400);
 
-        console.log(StakingRewards(stakingContract).earned(address(this)));
+        // console.log(StakingRewards(stakingContract).earned(address(this)));
 
-        console.log(StakingRewards(stakingContract).earned(address(alice)));
+        // console.log(StakingRewards(stakingContract).earned(address(alice)));
+    }
+
+    function testNotifyScenario() public {
+        MockERC20 stakingTokenTest = new MockERC20("Stake", "ST");
+
+        uint256 monthDUration = 86400 * 30;
+
+        hevm.warp(block.timestamp + 10);
+
+        rewardToken.transfer(address(stakingRewardsFactory), 10000e18);
+
+        assertEq(
+            rewardToken.balanceOf(address(stakingRewardsFactory)),
+            10000e18
+        );
+        stakingRewardsFactory.deploy(
+            address(stakingTokenTest),
+            address(rewardToken),
+            10000e18,
+            monthDUration
+        );
+
+        stakingRewardsFactory.notifyRewardAmount(address(stakingTokenTest));
     }
 }
 

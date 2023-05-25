@@ -7,8 +7,8 @@ import "../src/interfaces/IERC20.sol";
 
 contract DeployStakingRewardsFactoryScript is Script {
     // Vm hevm = Vm(0x7109709ECfa91a80626fF3989D68f67F5b1DD12D);
-    address rewardsToken = 0x4fC1263815Ab1E8fD97EC5010A7B4694dA6F593F;
-    address stakingToken = 0xfBB9a726ed78631b7766E02f84cf2e40345D8083;
+    address rewardsToken = 0x1837d2285980853b0fe02AaD766a9403e311a4f4;
+    address stakingToken = 0xE8f0E66906b4072dc4886aED005eC21D27B1a724;
     uint256 stakingRewardsGenesis = block.timestamp + 1 minutes;
 
     function run() external {
@@ -19,19 +19,6 @@ contract DeployStakingRewardsFactoryScript is Script {
             stakingRewardsGenesis
         );
 
-        // IERC20(rewardsToken).transfer(address(stakingRewardsFactory), 100e18);
-
-        // vm.stopBroadcast();
-
-        // vm.startBroadcast(deployerPrivateKey);
-        // stakingRewardsFactory.deploy(
-        //     stakingToken,
-        //     rewardsToken,
-        //     100e18,
-        //     block.timestamp + 10 days
-        // );
-
-        // stakingRewardsFactory.notifyRewardAmounts();
         vm.stopBroadcast();
     }
 }

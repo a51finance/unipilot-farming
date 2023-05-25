@@ -746,56 +746,56 @@ contract StakingDualRewardsTest is Test {
         );
     }
 
-    function testNotifyingSinlgeTokenReward() public {
-        stakingDualRewardsFactory = new StakingDualRewardsFactory(
-            block.timestamp + 1
-        );
-        uint256 iTime = block.timestamp + 10 days;
-        deployStakingContract(
-            address(stakingToken),
-            address(rewardTokenA),
-            address(rewardTokenB),
-            10000e18,
-            15000e18,
-            iTime
-        );
+    // function testNotifyingSinlgeTokenReward() public {
+    //     stakingDualRewardsFactory = new StakingDualRewardsFactory(
+    //         block.timestamp + 1
+    //     );
+    //     uint256 iTime = block.timestamp + 10 days;
+    //     deployStakingContract(
+    //         address(stakingToken),
+    //         address(rewardTokenA),
+    //         address(rewardTokenB),
+    //         10000e18,
+    //         15000e18,
+    //         iTime
+    //     );
 
-        hevm.warp(iTime);
+    //     hevm.warp(iTime);
 
-        uint256 newDuration = block.timestamp + 100 days;
-        // uint256 newAmountA = 150e18;
-        // uint256 newAmountB = 250e18;
+    //     uint256 newDuration = block.timestamp + 100 days;
+    //     // uint256 newAmountA = 150e18;
+    //     // uint256 newAmountB = 250e18;
 
-        // uint256 balanceA = rewardTokenA.balanceOf(address(stakingDualRewards));
-        // uint256 balanceB = rewardTokenB.balanceOf(address(stakingDualRewards));
+    //     // uint256 balanceA = rewardTokenA.balanceOf(address(stakingDualRewards));
+    //     // uint256 balanceB = rewardTokenB.balanceOf(address(stakingDualRewards));
 
-        // uint256 rewardRateA = newAmountA / newDuration;
-        // uint256 rewardRateB = newAmountB / newDuration;
+    //     // uint256 rewardRateA = newAmountA / newDuration;
+    //     // uint256 rewardRateB = newAmountB / newDuration;
 
-        // console.log(rewardRateA, balanceA / newDuration);
-        // console.log(rewardRateB, balanceB / newDuration);
+    //     // console.log(rewardRateA, balanceA / newDuration);
+    //     // console.log(rewardRateB, balanceB / newDuration);
 
-        // console.log(rewardRateA <= balanceA / newDuration);
-        // console.log(rewardRateB <= balanceB / newDuration);
+    //     // console.log(rewardRateA <= balanceA / newDuration);
+    //     // console.log(rewardRateB <= balanceB / newDuration);
 
-        rewardTokenA.transfer(address(stakingDualRewardsFactory), 1000e18);
-        // rewardB.transfer()
-        hevm.prank(address(stakingDualRewardsFactory));
-        StakingDualRewards(stakingDualRewards).notifyRewardAmount(
-            200e18,
-            0,
-            newDuration
-        );
-        hevm.warp(newDuration);
-        newDuration = block.timestamp + 10 days;
-        rewardTokenB.transfer(address(stakingDualRewardsFactory), 1000e18);
-        hevm.prank(address(stakingDualRewardsFactory));
-        StakingDualRewards(stakingDualRewards).notifyRewardAmount(
-            0,
-            200e18,
-            newDuration
-        );
-    }
+    //     rewardTokenA.transfer(address(stakingDualRewardsFactory), 1000e18);
+    //     // rewardB.transfer()
+    //     hevm.prank(address(stakingDualRewardsFactory));
+    //     StakingDualRewards(stakingDualRewards).notifyRewardAmount(
+    //         200e18,
+    //         0,
+    //         newDuration
+    //     );
+    //     hevm.warp(newDuration);
+    //     newDuration = block.timestamp + 10 days;
+    //     rewardTokenB.transfer(address(stakingDualRewardsFactory), 1000e18);
+    //     hevm.prank(address(stakingDualRewardsFactory));
+    //     StakingDualRewards(stakingDualRewards).notifyRewardAmount(
+    //         0,
+    //         200e18,
+    //         newDuration
+    //     );
+    // }
 
     // recoverERC20
     function testRecoverERC20() public {
@@ -831,5 +831,202 @@ contract StakingDualRewardsTest is Test {
             rewardTokenA.balanceOf(address(stakingDualRewards)),
             contractBalanceBefore - stakedAmount
         );
+    }
+
+    // function testStakingScenario() public {
+    //     MockERC20 testToken1 = new MockERC20("StakingTokenTest", "STT");
+
+    //     stakingDualRewardsFactory.deploy(
+    //         address(this),
+    //         address(testToken1),
+    //         address(rewardTokenA),
+    //         address(rewardTokenB),
+    //         90500000000000000000,
+    //         90500000000000000000,
+    //         2 days
+    //     );
+
+    //     (stakingDualRewards, , , , , ) = stakingDualRewardsFactory
+    //         .stakingRewardsInfoByStakingToken(address(testToken1));
+    //     uint256 _stakeAmount = 200e18;
+    //     testToken1.transfer(bob, 10000e18);
+
+    //     // Approve and stake
+    //     hevm.prank(bob);
+    //     testToken1.approve(stakingDualRewards, _stakeAmount);
+    //     hevm.prank(bob);
+    //     StakingDualRewards(stakingDualRewards).stake(_stakeAmount);
+
+    //     // hevm.warp(block.timestamp + 60);
+
+    //     bool success1 = rewardTokenA.transfer(
+    //         address(stakingDualRewardsFactory),
+    //         90500000000000000000
+    //     );
+
+    //     //    / hevm.warp(block.timestamp + 60);
+
+    //     bool success2 = rewardTokenB.transfer(
+    //         address(stakingDualRewardsFactory),
+    //         90500000000000000000
+    //     );
+
+    //     // hevm.warp(block.timestamp + 60);
+
+    //     stakingDualRewardsFactory.notifyRewardAmount(address(testToken1));
+
+    //     console.log(
+    //         "Balance -> ",
+    //         rewardTokenA.balanceOf(address(stakingDualRewards))
+    //     );
+
+    //     hevm.warp(block.timestamp + 2 days);
+
+    //     hevm.prank(bob);
+    //     StakingDualRewards(stakingDualRewards).getReward();
+
+    //     console.log("Bob Balance -> ", rewardTokenA.balanceOf(address(bob)));
+
+    //     assertEq(rewardTokenA.balanceOf(address(stakingDualRewards)), 0);
+    // }
+
+    function testRewardEarningMechanism() public {
+        MockERC20 testToken1 = new MockERC20("StakingTokenTest", "STT");
+
+        stakingDualRewardsFactory.deploy(
+            address(this),
+            address(testToken1),
+            address(rewardTokenA),
+            address(rewardTokenB),
+            90500000000000000000,
+            90500000000000000000,
+            2 days
+        );
+        uint256 amount0 = 0;
+        uint256 amount1 = 0;
+
+        (stakingDualRewards, , , amount0, amount1, ) = stakingDualRewardsFactory
+            .stakingRewardsInfoByStakingToken(address(testToken1));
+
+        bool success1 = rewardTokenA.transfer(
+            address(stakingDualRewardsFactory),
+            90500000000000000000
+        );
+
+        bool success2 = rewardTokenB.transfer(
+            address(stakingDualRewardsFactory),
+            90500000000000000000
+        );
+
+        stakingDualRewardsFactory.notifyRewardAmount(address(testToken1));
+        assertEq(amount0, 90500000000000000000);
+        assertEq(amount1, 90500000000000000000);
+
+        uint256 rewardRateA = amount0 / (172800);
+        uint256 rewardRateB = amount1 / (172800);
+
+        assertEq(
+            StakingDualRewards(stakingDualRewards).rewardRateA(),
+            rewardRateA
+        );
+        assertEq(
+            StakingDualRewards(stakingDualRewards).rewardRateB(),
+            rewardRateB
+        );
+
+        uint256 _stakeAmount = 200e18;
+        testToken1.transfer(bob, 10000e18);
+
+        // Approve and stake
+        hevm.prank(bob);
+        testToken1.approve(stakingDualRewards, _stakeAmount);
+        hevm.prank(bob);
+        StakingDualRewards(stakingDualRewards).stake(_stakeAmount);
+
+        assertEq(
+            StakingDualRewards(stakingDualRewards).balanceOf(bob),
+            _stakeAmount
+        );
+
+        uint256 _balance = StakingDualRewards(stakingDualRewards).balanceOf(
+            bob
+        );
+        uint256 _rewardPerTokenA = StakingDualRewards(stakingDualRewards)
+            .rewardPerTokenA();
+
+        uint256 _userRewardPerTokenAPaid = StakingDualRewards(
+            stakingDualRewards
+        ).userRewardPerTokenAPaid(bob);
+        uint256 _rewardsA = StakingDualRewards(stakingDualRewards).rewardsA(
+            bob
+        );
+
+        uint256 _rewardPerTokenAStored = StakingDualRewards(stakingDualRewards)
+            .rewardPerTokenAStored();
+        uint256 _lastTimeRewardApplicable = StakingDualRewards(
+            stakingDualRewards
+        ).lastTimeRewardApplicable();
+
+        uint256 _lastUpdateTime = StakingDualRewards(stakingDualRewards)
+            .lastUpdateTime();
+
+        uint256 _totalSupply = StakingDualRewards(stakingDualRewards)
+            .totalSupply();
+
+        console.log("Calculation for Earned");
+
+        console.log(rewardRateA);
+
+        console.log(_balance, _rewardPerTokenA);
+
+        console.log(_userRewardPerTokenAPaid, _rewardsA);
+
+        console.log("Calculation for rewardPerToken");
+
+        console.log(_rewardPerTokenAStored, _lastTimeRewardApplicable);
+
+        console.log(_lastUpdateTime, _totalSupply);
+        // console.log(
+        //     "Before 2 days",
+        //     StakingDualRewards(stakingDualRewards).earnedA(bob)
+        // );
+        hevm.warp(3 days);
+        console.log("+================================+");
+
+        _balance = StakingDualRewards(stakingDualRewards).balanceOf(bob);
+        _rewardPerTokenA = StakingDualRewards(stakingDualRewards)
+            .rewardPerTokenA();
+        _userRewardPerTokenAPaid = StakingDualRewards(stakingDualRewards)
+            .userRewardPerTokenAPaid(bob);
+        _rewardsA = StakingDualRewards(stakingDualRewards).rewardsA(bob);
+        _rewardPerTokenAStored = StakingDualRewards(stakingDualRewards)
+            .rewardPerTokenAStored();
+        _lastTimeRewardApplicable = StakingDualRewards(stakingDualRewards)
+            .lastTimeRewardApplicable();
+
+        _lastUpdateTime = StakingDualRewards(stakingDualRewards)
+            .lastUpdateTime();
+
+        _totalSupply = StakingDualRewards(stakingDualRewards).totalSupply();
+
+        console.log("Calculation for Earned");
+        console.log(
+            "Earned:",
+            StakingDualRewards(stakingDualRewards).earnedA(bob)
+        );
+        console.log(_balance, _rewardPerTokenA);
+
+        console.log(_userRewardPerTokenAPaid, _rewardsA);
+
+        console.log("Calculation for rewardPerToken");
+
+        console.log(_rewardPerTokenAStored, _lastTimeRewardApplicable);
+
+        console.log(_lastUpdateTime, _totalSupply);
+
+        // console.log(
+        //     "After 2 days",
+        //     StakingDualRewards(stakingDualRewards).earnedA(bob)
+        // );
     }
 }

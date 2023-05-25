@@ -12,6 +12,8 @@ gas_reports = ["StakingRewards", "StakingRewardsFactory"]
 
 [rpc_endpoints]
 goerli = "${GOERLI_RPC_URL}"
+mumbai = "${POLYGON_RPC_URL}"
 
 [etherscan]
 goerli = { key = "${ETHERSCAN_API_KEY}" }
+polygon-mumbai = { key = "${POLYGON_API_KEY}" , url= "https://mumbai.polygonscan.com/"}

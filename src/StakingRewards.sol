@@ -49,12 +49,9 @@ contract StakingRewards is
         return _totalSupply;
     }
 
-    function balanceOf(address account)
-        external
-        view
-        override
-        returns (uint256)
-    {
+    function balanceOf(
+        address account
+    ) external view override returns (uint256) {
         return _balances[account];
     }
 
@@ -112,12 +109,9 @@ contract StakingRewards is
         emit Staked(msg.sender, amount);
     }
 
-    function stake(uint256 amount)
-        external
-        override
-        nonReentrant
-        updateReward(msg.sender)
-    {
+    function stake(
+        uint256 amount
+    ) external override nonReentrant updateReward(msg.sender) {
         require(amount > 0, "CSZ");
         _totalSupply = _totalSupply.add(amount);
         _balances[msg.sender] = _balances[msg.sender].add(amount);
@@ -125,12 +119,9 @@ contract StakingRewards is
         emit Staked(msg.sender, amount);
     }
 
-    function withdraw(uint256 amount)
-        public
-        override
-        nonReentrant
-        updateReward(msg.sender)
-    {
+    function withdraw(
+        uint256 amount
+    ) public override nonReentrant updateReward(msg.sender) {
         require(amount > 0, "CWZ");
         _totalSupply = _totalSupply.sub(amount);
         _balances[msg.sender] = _balances[msg.sender].sub(amount);
@@ -154,12 +145,10 @@ contract StakingRewards is
 
     /* ========== RESTRICTED FUNCTIONS ========== */
 
-    function notifyRewardAmount(uint256 reward, uint256 rewardsDuration)
-        external
-        override
-        onlyRewardsDistribution
-        updateReward(address(0))
-    {
+    function notifyRewardAmount(
+        uint256 reward,
+        uint256 rewardsDuration
+    ) external override onlyRewardsDistribution updateReward(address(0)) {
         require(block.timestamp.add(rewardsDuration) >= periodFinish, "CRP");
 
         if (block.timestamp >= periodFinish) {

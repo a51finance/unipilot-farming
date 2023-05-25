@@ -460,7 +460,7 @@ contract StakingRewardsFactoryTest is Test {
         );
         hevm.warp(block.timestamp + 1 minutes);
         stakingDualRewardsFactory.notifyRewardAmounts();
-        console.log(stakingContractInfo[0]);
+        // console.log(stakingContractInfo[0]);
         for (uint256 i = 0; i < 5; i++) {
             assertEq(rewardTokenA.balanceOf(stakingContractInfo[i]), 20e18);
             assertEq(rewardTokenB.balanceOf(stakingContractInfo[i]), 10e18);
