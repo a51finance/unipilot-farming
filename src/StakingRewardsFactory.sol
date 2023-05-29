@@ -58,7 +58,7 @@ contract StakingRewardsFactory is Ownable, IStakingRewardsFactory {
                         rewardsDuration
                     )
                 )
-            }(address(this), rewardToken, stakingToken)
+            }(msg.sender, address(this), rewardToken, stakingToken)
         );
 
         info.stakingRewards = stakingRewardContract;
