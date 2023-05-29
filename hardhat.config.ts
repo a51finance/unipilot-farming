@@ -57,8 +57,8 @@ function createTestnetConfig(
   const url: string =
     network == "mumbai"
       ? "https://polygon-mumbai.g.alchemy.com/v2/0zYR0X60apvZglZAMDnA7dHmE7lG4amL"
-      : // : "https://rpc.dogechain.dog";
-        "https://zkevm-rpc.com";
+      : "https://rpc.dogechain.dog";
+  // "https://zkevm-rpc.com";
   // : "https://polygon-mainnet.g.alchemy.com/v2/g2JAXug5sBd7l8VuSlEYvUB3PysaxSFx";
   return {
     accounts: [`${process.env.PK_POLY}`, `${process.env.PK2}`],

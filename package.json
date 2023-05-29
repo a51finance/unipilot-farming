@@ -14,7 +14,9 @@
     "deploy-stakingFactory":"hardhat deploy-stakingFactory --network",
     "deploy-stakingDualFactory":"hardhat deploy-stakingDualFactory --network",
     "deploy-stakingDualRewardsFactory": "./bin/deployStakingDualRewardsFactory.sh",
-    "verify-vault": "hardhat verify-vault --network"
+    "verify-vault": "hardhat verify-vault --network",
+    "verify-stakingvault":"hardhat verify-stakingvault --network",
+    "verify-stakingvaultDual":"hardhat verify-stakingvaultDual --network"
   },
   "author": "Devan Non <devanon@chainstride.capital>",
   "license": "Apache-2.0",
