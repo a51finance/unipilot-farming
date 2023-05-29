@@ -7,11 +7,13 @@ import "./libraries/SafeMath.sol";
 import "./libraries/Math.sol";
 import "openzeppelin-contracts/contracts/utils/ReentrancyGuard.sol";
 import "./base/RewardsDistributionRecipient.sol";
+import "./base/Pausable.sol";
 
 contract StakingRewards is
     IStakingRewards,
     RewardsDistributionRecipient,
-    ReentrancyGuard
+    ReentrancyGuard,
+    Pausable
 {
     using SafeMath for uint256;
     using SafeERC20 for IERC20;
@@ -34,10 +36,12 @@ contract StakingRewards is
     /* ========== CONSTRUCTOR ========== */
 
     constructor(
+        address _owner,
         address _rewardsDistribution,
         address _rewardsToken,
         address _stakingToken
-    ) public {
+    ) {
+        transferOwnership(_owner);
         rewardsToken = IERC20(_rewardsToken);
         stakingToken = IERC20(_stakingToken);
         rewardsDistribution = _rewardsDistribution;
@@ -63,6 +67,7 @@ contract StakingRewards is
         if (_totalSupply == 0) {
             return rewardPerTokenStored;
         }
+
         return
             rewardPerTokenStored.add(
                 lastTimeRewardApplicable()
@@ -141,6 +146,16 @@ contract StakingRewards is
     function exit() external override {
         withdraw(_balances[msg.sender]);
         getReward();
+    }
+
+    // Added to support recovering LP Rewards in case of emergency
+    function recoverERC20(
+        address tokenAddress,
+        uint256 tokenAmount
+    ) external onlyOwner {
+        require(tokenAddress != address(stakingToken), "CWT");
+        IERC20(tokenAddress).safeTransfer(owner(), tokenAmount);
+        emit Recovered(tokenAddress, tokenAmount);
     }
 
     /* ========== RESTRICTED FUNCTIONS ========== */

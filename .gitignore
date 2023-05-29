@@ -18,3 +18,4 @@ typechain
 
 .env
 lcov.info
+bin/
