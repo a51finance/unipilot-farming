@@ -728,11 +728,12 @@ contract StakingRewardsTest is Test {
 
     function testNotifyScenario() public {
         MockERC20 stakingTokenTest = new MockERC20("Stake", "ST");
-
-        uint256 monthDUration = 86400 * 30;
+        StakingRewards stakingRewards;
+        uint256 monthDuration = 86400 * 30;
+        uint256 _15DaysDuration = 86400;
 
         hevm.warp(block.timestamp + 10);
-
+        console.log(block.timestamp + monthDuration);
         rewardToken.transfer(address(stakingRewardsFactory), 10000e18);
 
         assertEq(
@@ -743,73 +744,320 @@ contract StakingRewardsTest is Test {
             address(stakingTokenTest),
             address(rewardToken),
             10000e18,
-            monthDUration
+            monthDuration
         );
 
         stakingRewardsFactory.notifyRewardAmount(address(stakingTokenTest));
+        (stakingContract, , , ) = stakingRewardsFactory
+            .stakingRewardsInfoByStakingToken(address(stakingTokenTest));
+        stakingRewards = StakingRewards(stakingContract);
+        assertEq(
+            stakingRewards.periodFinish(),
+            block.timestamp + monthDuration
+        );
+
+        hevm.warp(block.timestamp + (86400 * 16));
+        console.log(block.timestamp);
+        stakingRewardsFactory.update(
+            address(stakingTokenTest),
+            10000e18,
+            _15DaysDuration
+        );
+        rewardToken.transfer(address(stakingRewardsFactory), 10000e18);
+        hevm.expectRevert(bytes("CRP"));
+        stakingRewardsFactory.notifyRewardAmount(address(stakingTokenTest));
+    }
+
+    function testRewardTopupScenario() public {
+        MockERC20 stakingTokenTest = new MockERC20("Stake", "ST");
+        StakingRewards stakingRewards;
+        uint256 monthDuration = 86400 * 30;
+        uint256 periodFinish = 0;
+        uint256 rewardRate = 0;
+        uint256 lastUpdateTime = 0;
+        uint256 totalSupply = 0;
+
+        hevm.warp(block.timestamp + 10);
+        rewardToken.transfer(address(stakingRewardsFactory), 10000e18);
+
+        stakingRewardsFactory.deploy(
+            address(stakingTokenTest),
+            address(rewardToken),
+            10000e18,
+            monthDuration
+        );
+
+        stakingRewardsFactory.notifyRewardAmount(address(stakingTokenTest));
+        (stakingContract, , , ) = stakingRewardsFactory
+            .stakingRewardsInfoByStakingToken(address(stakingTokenTest));
+        stakingRewards = StakingRewards(stakingContract);
+        hevm.warp(block.timestamp + monthDuration + 10);
+
+        assertEq(rewardToken.balanceOf(address(stakingRewards)), 10000e18);
+
+        stakingTokenTest.approve(address(stakingRewards), 100e18);
+        stakingRewards.stake(100e18);
+
+        totalSupply += 100e18;
+        hevm.warp(block.timestamp + 100);
+
+        rewardToken.transfer(address(stakingRewardsFactory), 10000e18);
+        stakingRewardsFactory.update(
+            address(stakingTokenTest),
+            10000e18,
+            monthDuration
+        );
+        periodFinish = block.timestamp + monthDuration;
+        stakingRewardsFactory.notifyRewardAmount(address(stakingTokenTest));
+        lastUpdateTime = block.timestamp;
+        hevm.warp(block.timestamp + 1);
+
+        // first staker will have 0 rewardPerTokenStored
+        uint256 rewardPerTokenStored = 0;
+        rewardRate = 10000e18 / monthDuration;
+        uint256 lastTimeRewardApplicable = Math.min(
+            block.timestamp,
+            periodFinish
+        );
+
+        assertEq(stakingRewards.rewardPerTokenStored(), rewardPerTokenStored);
+
+        uint256 rewardPerToken = rewardPerTokenStored +
+            ((lastTimeRewardApplicable - lastUpdateTime) * rewardRate * 1e18) /
+            totalSupply;
+
+        assertEq(stakingRewards.rewardPerToken(), rewardPerToken);
+
+        hevm.warp(block.timestamp + 10 days);
+
+        stakingTokenTest.transfer(address(alice), 50e18);
+        hevm.prank(address(alice));
+        stakingTokenTest.approve(address(stakingRewards), 50e18);
+        hevm.prank(address(alice));
+        stakingRewards.stake(50e18);
+        // totalSupply += 50e18;
+        rewardPerToken =
+            rewardPerTokenStored +
+            ((lastTimeRewardApplicable =
+                Math.min(block.timestamp, periodFinish) -
+                lastUpdateTime) *
+                rewardRate *
+                1e18) /
+            totalSupply;
+
+        rewardPerTokenStored = rewardPerToken;
+
+        lastUpdateTime = lastTimeRewardApplicable = Math.min(
+            block.timestamp,
+            periodFinish
+        );
+
+        hevm.warp(block.timestamp + 10 days);
+        totalSupply += 50e18;
+        lastTimeRewardApplicable = Math.min(block.timestamp, periodFinish);
+
+        rewardPerToken =
+            rewardPerTokenStored +
+            (((lastTimeRewardApplicable - lastUpdateTime) * rewardRate * 1e18) /
+                totalSupply);
+
+        assertEq(stakingRewards.rewardPerToken(), rewardPerToken);
+    }
+
+    function testRewardAmount() public {
+        MockERC20 stakingTokenTest = new MockERC20("Stake", "ST");
+        StakingRewards stakingRewards;
+        uint256 monthDuration = 86400 * 30;
+        uint256 periodFinish = 0;
+        uint256 rewardRate = 0;
+        uint256 lastUpdateTime = 0;
+        uint256 totalSupply = 0;
+
+        hevm.warp(block.timestamp + 10);
+
+        // Deploy Vault
+        stakingRewardsFactory.deploy(
+            address(stakingTokenTest),
+            address(rewardToken),
+            10000e18,
+            monthDuration
+        );
+
+        // Transfer Amount
+        rewardToken.transfer(address(stakingRewardsFactory), 10000e18);
+
+        // Notify
+        stakingRewardsFactory.notifyRewardAmount(address(stakingTokenTest));
+        periodFinish = block.timestamp + monthDuration;
+
+        (stakingContract, , , ) = stakingRewardsFactory
+            .stakingRewardsInfoByStakingToken(address(stakingTokenTest));
+        stakingRewards = StakingRewards(stakingContract);
+
+        stakingTokenTest.transfer(address(alice), 100e18);
+
+        // Stake after 1 Day
+        hevm.warp(block.timestamp + 1 days);
+        hevm.prank(address(alice));
+        stakingTokenTest.approve(address(stakingRewards), 100e18);
+        hevm.prank(address(alice));
+        stakingRewards.stake(100e18);
+        totalSupply += 100e18;
+        lastUpdateTime = Math.min(block.timestamp, periodFinish);
+        // roll forward to 15 days
+        hevm.warp(block.timestamp + 15 days);
+
+        // calculating the reward amount
+
+        // first staker will have 0 rewardPerTokenStored because there was no
+        // previous state of rewardPerToken
+
+        uint256 rewardPerTokenStored = 0;
+        rewardRate = 10000e18 / monthDuration;
+        uint256 lastTimeRewardApplicable = Math.min(
+            block.timestamp,
+            periodFinish
+        );
+
+        uint256 rewardPerToken = rewardPerTokenStored +
+            ((lastTimeRewardApplicable - lastUpdateTime) * rewardRate * 1e18) /
+            totalSupply;
+
+        console.log("rewardPerToken", rewardPerToken); // 49999999999999991040
+
+        // earnedAmount
+        uint256 userBalance = 100e18;
+
+        // user didn't claimed rewardPreviously so
+        // previous rewardPerTokenPaid will be 0
+        uint256 rewardPerTokenPaid = 0;
+
+        // similar for above reason the previousRewardPaid will also be 0
+        uint256 previousRewardPaid = 0;
+
+        uint256 earned = (userBalance * (rewardPerToken - rewardPerTokenPaid)) /
+            1e18 +
+            previousRewardPaid;
+
+        console.log("earned", earned); //4999999999999999104000
+        assertEq(stakingRewards.earned(address(alice)), earned);
+
+        console.log("Balance Before", rewardToken.balanceOf(address(alice)));
+        hevm.prank(address(alice));
+        stakingRewards.getReward();
+        console.log(
+            "Balance After Subtracting Reward",
+            rewardToken.balanceOf(address(alice))
+        );
+    }
+
+    function testRewardGeneration() public {
+        MockERC20 stakingTokenTest = new MockERC20("Stake", "ST");
+        StakingRewards stakingRewards;
+        uint256 monthDuration = 86400 * 30;
+        uint256 periodFinish = 0;
+        uint256 rewardRate = 0;
+        uint256 lastUpdateTime = 0;
+        uint256 totalSupply = 0;
+
+        hevm.warp(block.timestamp + 10);
+
+        // Deploy Vault
+        stakingRewardsFactory.deploy(
+            address(stakingTokenTest),
+            address(rewardToken),
+            10000e18,
+            monthDuration
+        );
+
+        // Transfer Amount
+        rewardToken.transfer(address(stakingRewardsFactory), 10000e18);
+
+        // Notify
+        stakingRewardsFactory.notifyRewardAmount(address(stakingTokenTest));
+        rewardRate = 10000e18 / monthDuration;
+        periodFinish = block.timestamp + monthDuration;
+
+        (stakingContract, , , ) = stakingRewardsFactory
+            .stakingRewardsInfoByStakingToken(address(stakingTokenTest));
+        stakingRewards = StakingRewards(stakingContract);
+        stakingTokenTest.transfer(address(alice), 300e18);
+
+        // Stake after 1 Day
+        hevm.warp(block.timestamp + 1 days);
+        hevm.prank(address(alice));
+        stakingTokenTest.approve(address(stakingRewards), 100e18);
+        hevm.prank(address(alice));
+        stakingRewards.stake(100e18);
+        totalSupply += 100e18;
+        lastUpdateTime = Math.min(block.timestamp, periodFinish);
+
+        hevm.warp(block.timestamp + 10 days);
+        uint256 lastTimeRewardApplicable = Math.min(
+            block.timestamp,
+            periodFinish
+        );
+        uint256 rewardPerTokenStored = 0;
+        uint256 rewardPerToken = rewardPerTokenStored +
+            ((lastTimeRewardApplicable - lastUpdateTime) * rewardRate * 1e18) /
+            totalSupply;
+
+        assertEq(stakingRewards.rewardPerToken(), rewardPerToken);
+
+        hevm.warp(block.timestamp + 10 days);
+
+        // Stake
+        hevm.prank(address(alice));
+        stakingTokenTest.approve(address(stakingRewards), 100e18);
+
+        rewardPerToken =
+            rewardPerTokenStored +
+            ((Math.min(block.timestamp, periodFinish) - lastUpdateTime) *
+                rewardRate *
+                1e18) /
+            totalSupply;
+        lastUpdateTime = Math.min(block.timestamp, periodFinish);
+        rewardPerTokenStored = rewardPerToken;
+        uint256 previousRewardEarned = earned(100e18, rewardPerToken, 0, 0);
+        uint256 userRewardPerTokenPaid = rewardPerTokenStored;
+
+        assertEq(stakingRewards.earned(address(alice)), previousRewardEarned);
+
+        hevm.prank(address(alice));
+        stakingRewards.stake(100e18);
+        totalSupply += 100e18;
+
+        assertEq(
+            stakingRewards.userRewardPerTokenPaid(address(alice)),
+            userRewardPerTokenPaid
+        );
+
+        hevm.warp(block.timestamp + 10 days);
+
+        rewardPerToken =
+            rewardPerTokenStored +
+            ((Math.min(block.timestamp, periodFinish) - lastUpdateTime) *
+                rewardRate *
+                1e18) /
+            totalSupply;
+
+        assertEq(
+            stakingRewards.earned(address(alice)),
+            earned(
+                200e18,
+                rewardPerToken,
+                userRewardPerTokenPaid,
+                previousRewardEarned
+            )
+        );
+    }
+
+    function earned(
+        uint256 b,
+        uint256 rpt,
+        uint256 rptp,
+        uint256 prp
+    ) internal pure returns (uint256 earnedAmount) {
+        earnedAmount = (b * (rpt - rptp)) / 1e18 + prp;
     }
 }
-
-/**
- * 
- *     console.log("=============== After Stake ================");
-        stakeToken(50e18);
-
-        hevm.warp(initialTime + 2 days);
-
-        console.log(
-            "lastTimeRewardApplicable --> ",
-            StakingRewards(stakingContract).lastTimeRewardApplicable()
-        );
-
-        console.log(
-            "lastUpdateTime --> ",
-            StakingRewards(stakingContract).lastUpdateTime()
-        );
-
-        console.log(
-            "Reward Rate --> ",
-            StakingRewards(stakingContract).rewardRate()
-        );
-
-        console.log(
-            "rewardPerToken --> ",
-            StakingRewards(stakingContract).rewardPerToken()
-        );
-
-        console.log(
-            "Balance -->",
-            StakingRewards(stakingContract).balanceOf(address(this))
-        );
-        console.log(
-            "rewardPerTokenPaid --> ",
-            StakingRewards(stakingContract).userRewardPerTokenPaid(
-                address(this)
-            )
-        );
-
-        console.log(
-            "rewardPerTokenStored --> ",
-            StakingRewards(stakingContract).rewardPerTokenStored()
-        );
-
-        console.log(
-            "earned -->",
-            StakingRewards(stakingContract).earned(address(this))
-        );
-
-        console.log("============== earned calculations ==============");
-
-        console.log(
-            "rewardPerTokenPaid --> ",
-            StakingRewards(stakingContract).userRewardPerTokenPaid(
-                address(this)
-            )
-        );
-
-        console.log(
-            "rewards --> ",
-            StakingRewards(stakingContract).rewards(address(this))
-        );
- * 
- */
