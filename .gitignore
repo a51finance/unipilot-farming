@@ -13,5 +13,9 @@ artifacts/
 
 #Hardhat plugin files
 typechain-types/
+typechain
+.deps
 
 .env
+lcov.info
+bin/

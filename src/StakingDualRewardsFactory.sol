@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.7.6;
-
-import "openzeppelin-contracts/contracts/utils/ReentrancyGuard.sol";
 import "openzeppelin-contracts/contracts/access/Ownable.sol";
-import "./StakingRewards.sol";
-import "./interfaces/IStakingRewardsFactory.sol";
 
-contract StakingRewardsFactory is Ownable, IStakingRewardsFactory {
+import "./StakingDualRewards.sol";
+
+import "./interfaces/IStakingDualRewardsFactory.sol";
+
+contract StakingDualRewardsFactory is Ownable, IStakingDualRewardsFactory {
     // immutables
     uint256 public stakingRewardsGenesis;
 
@@ -16,8 +16,10 @@ contract StakingRewardsFactory is Ownable, IStakingRewardsFactory {
     // info about rewards for a particular staking token
     struct StakingRewardsInfo {
         address stakingRewards;
-        address rewardToken;
-        uint256 rewardAmount;
+        address rewardsTokenA;
+        address rewardsTokenB;
+        uint256 rewardAmountA;
+        uint256 rewardAmountB;
         uint256 duration;
     }
 
@@ -37,47 +39,66 @@ contract StakingRewardsFactory is Ownable, IStakingRewardsFactory {
     // the reward will be distributed to the staking reward contract no sooner than the genesis
     function deploy(
         address stakingToken,
-        address rewardToken,
-        uint256 rewardAmount,
+        address rewardsTokenA,
+        address rewardsTokenB,
+        uint256 rewardAmountA,
+        uint256 rewardAmountB,
         uint256 rewardsDuration
     ) public onlyOwner {
+        require(
+            rewardsTokenA != address(0) && rewardsTokenB != address(0),
+            "IRT(s)"
+        );
+
         StakingRewardsInfo storage info = stakingRewardsInfoByStakingToken[
             stakingToken
         ];
-        require(rewardToken != address(0) && stakingToken != address(0), "IA");
-        require(rewardToken != stakingToken, "IA");
+
         require(info.stakingRewards == address(0), "AD");
-        require(rewardAmount > 0, "ZR");
-        address stakingRewardContract = address(
-            new StakingRewards{
+
+        info.stakingRewards = address(
+            new StakingDualRewards{
                 salt: keccak256(
                     abi.encodePacked(
-                        stakingToken,
-                        rewardToken,
-                        rewardAmount,
-                        rewardsDuration
+                        msg.sender,
+                        address(this),
+                        rewardsTokenA,
+                        rewardsTokenB,
+                        stakingToken
                     )
                 )
-            }(msg.sender, address(this), rewardToken, stakingToken)
+            }(
+                msg.sender,
+                address(this),
+                rewardsTokenA,
+                rewardsTokenB,
+                stakingToken
+            )
         );
 
-        info.stakingRewards = stakingRewardContract;
-        info.rewardToken = rewardToken;
-        info.rewardAmount = rewardAmount;
+        info.rewardsTokenA = rewardsTokenA;
+        info.rewardsTokenB = rewardsTokenB;
+
+        info.rewardAmountA = rewardAmountA;
+        info.rewardAmountB = rewardAmountB;
         info.duration = rewardsDuration;
         stakingTokens.push(stakingToken);
+
         emit Deployed(
-            stakingRewardContract,
+            info.stakingRewards,
             stakingToken,
-            rewardToken,
-            rewardAmount,
+            rewardsTokenA,
+            rewardsTokenB,
+            rewardAmountA,
+            rewardAmountB,
             rewardsDuration
         );
     }
 
     function update(
         address stakingToken,
-        uint256 rewardAmount,
+        uint256 rewardAmountA,
+        uint256 rewardAmountB,
         uint256 rewardsDuration
     ) public onlyOwner {
         StakingRewardsInfo storage info = stakingRewardsInfoByStakingToken[
@@ -85,10 +106,16 @@ contract StakingRewardsFactory is Ownable, IStakingRewardsFactory {
         ];
         require(info.stakingRewards != address(0), "UND");
 
-        info.rewardAmount = rewardAmount;
+        info.rewardAmountA = rewardAmountA;
+        info.rewardAmountB = rewardAmountB;
         info.duration = rewardsDuration;
 
-        emit Updated(info.stakingRewards, rewardAmount, rewardsDuration);
+        emit Updated(
+            info.stakingRewards,
+            rewardAmountA,
+            rewardAmountB,
+            rewardsDuration
+        );
     }
 
     ///// permissionless functions
@@ -111,21 +138,35 @@ contract StakingRewardsFactory is Ownable, IStakingRewardsFactory {
         ];
         require(info.stakingRewards != address(0), "NND");
 
-        if (info.rewardAmount > 0 && info.duration > 0) {
-            uint256 rewardAmount = info.rewardAmount;
+        if (
+            info.rewardAmountA > 0 &&
+            info.rewardAmountB > 0 &&
+            info.duration > 0
+        ) {
+            uint256 rewardAmountA = info.rewardAmountA;
+            uint256 rewardAmountB = info.rewardAmountB;
             uint256 duration = info.duration;
-            info.rewardAmount = 0;
+            info.rewardAmountA = 0;
+            info.rewardAmountB = 0;
             info.duration = 0;
 
             require(
-                IERC20(info.rewardToken).transfer(
+                IERC20(info.rewardsTokenA).transfer(
                     info.stakingRewards,
-                    rewardAmount
+                    rewardAmountA
                 ),
                 "TF"
             );
-            StakingRewards(info.stakingRewards).notifyRewardAmount(
-                rewardAmount,
+            require(
+                IERC20(info.rewardsTokenB).transfer(
+                    info.stakingRewards,
+                    rewardAmountB
+                ),
+                "TF"
+            );
+            StakingDualRewards(info.stakingRewards).notifyRewardAmount(
+                rewardAmountA,
+                rewardAmountB,
                 duration
             );
         }

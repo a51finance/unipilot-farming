@@ -7,12 +7,21 @@
     "test": "test"
   },
   "scripts": {
-    "test": "hardhat test",
-    "deploy-stakingRewardsFactory":"forge script script/StakingRewardsFactory.s.sol:StakingRewardsFactory --rpc-url $GOERLI_RPC_URL --broadcast --verify -vvvv"
+    "test": "clear && forge test -vv",
+    "test-mainnet": "forge test --fork-url $ETH_RPC_URL -vv",
+    "logtest": "clear && forge test -vvvv",
+    "deploy-stakingRewardsFactory": "./bin/deployStakingRewardsFactory.sh",
+    "deploy-stakingFactory":"hardhat deploy-stakingFactory --network",
+    "deploy-stakingDualFactory":"hardhat deploy-stakingDualFactory --network",
+    "deploy-stakingDualRewardsFactory": "./bin/deployStakingDualRewardsFactory.sh",
+    "verify-vault": "hardhat verify-vault --network",
+    "verify-stakingvault":"hardhat verify-stakingvault --network",
+    "verify-stakingvaultDual":"hardhat verify-stakingvaultDual --network"
   },
   "author": "Devan Non <devanon@chainstride.capital>",
   "license": "Apache-2.0",
   "devDependencies": {
+    "@nomicfoundation/hardhat-foundry": "^1.0.1",
     "@nomiclabs/hardhat-ethers": "^2.0.6",
     "@nomiclabs/hardhat-waffle": "^2.0.3",
     "@typechain/ethers-v5": "^10.0.0",
@@ -22,11 +31,16 @@
     "@types/node": "^17.0.35",
     "chai": "^4.3.6",
     "ethereum-waffle": "^3.2.0",
-    "ethers": "^5.6.6",
-    "hardhat": "^2.9.5",
+    "ethers": "^5.7.2",
+    "hardhat": "^2.14.0",
     "hardhat-preprocessor": "^0.1.4",
     "ts-node": "^10.7.0",
     "typechain": "^8.0.0",
     "typescript": "^4.6.4"
+  },
+  "dependencies": {
+    "@nomiclabs/hardhat-etherscan": "^3.1.7",
+    "dotenv": "^16.0.3",
+    "solidity-coverage": "^0.8.2"
   }
 }

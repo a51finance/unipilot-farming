@@ -1,14 +1,17 @@
 // SPDX-License-Identifier: MIT
-pragma solidity >=0.7.6;
+pragma solidity ^0.7.6;
 
-// Inheritancea
-interface IStakingRewards {
+interface IStakingDualRewards {
     // Views
     function lastTimeRewardApplicable() external view returns (uint256);
 
-    function rewardPerToken() external view returns (uint256);
+    function rewardPerTokenA() external view returns (uint256);
 
-    function earned(address account) external view returns (uint256);
+    function rewardPerTokenB() external view returns (uint256);
+
+    function earnedA(address account) external view returns (uint256);
+
+    function earnedB(address account) external view returns (uint256);
 
     function totalSupply() external view returns (uint256);
 
@@ -24,9 +27,11 @@ interface IStakingRewards {
 
     function exit() external;
 
-    event RewardAdded(uint256 reward, uint256 periodFinish);
+    /* ========== EVENTS ========== */
+
+    event RewardAdded(uint256 rewardA, uint256 rewardB, uint256 periodFinish);
     event Staked(address indexed user, uint256 amount);
     event Withdrawn(address indexed user, uint256 amount);
-    event RewardPaid(address indexed user, uint256 reward);
+    event RewardPaid(address indexed user, address rewardToken, uint256 reward);
     event Recovered(address token, uint256 amount);
 }
