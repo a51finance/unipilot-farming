@@ -38,7 +38,6 @@ contract StakingDualRewardsFactory is Ownable, IStakingDualRewardsFactory {
     // deploy a staking reward contract for the staking token, and store the reward amount
     // the reward will be distributed to the staking reward contract no sooner than the genesis
     function deploy(
-        address _owner,
         address stakingToken,
         address rewardsTokenA,
         address rewardsTokenB,
@@ -61,14 +60,20 @@ contract StakingDualRewardsFactory is Ownable, IStakingDualRewardsFactory {
             new StakingDualRewards{
                 salt: keccak256(
                     abi.encodePacked(
-                        _owner,
+                        msg.sender,
                         address(this),
                         rewardsTokenA,
                         rewardsTokenB,
                         stakingToken
                     )
                 )
-            }(_owner, address(this), rewardsTokenA, rewardsTokenB, stakingToken)
+            }(
+                msg.sender,
+                address(this),
+                rewardsTokenA,
+                rewardsTokenB,
+                stakingToken
+            )
         );
 
         info.rewardsTokenA = rewardsTokenA;

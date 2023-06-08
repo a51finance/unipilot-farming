@@ -49,7 +49,6 @@ contract StakingDualRewardsTest is Test {
         hevm.warp(block.timestamp + 1 minutes);
 
         stakingDualRewardsFactory.deploy(
-            address(this),
             _stakingToken,
             _rewardTokenA,
             _rewardTokenB,
@@ -134,7 +133,6 @@ contract StakingDualRewardsTest is Test {
 
         // deploy staking vault
         stakingDualRewardsFactory.deploy(
-            address(this),
             address(stakingTokenTest),
             address(rewardTokenA),
             address(rewardTokenB),
@@ -894,7 +892,6 @@ contract StakingDualRewardsTest is Test {
         MockERC20 testToken1 = new MockERC20("StakingTokenTest", "STT");
 
         stakingDualRewardsFactory.deploy(
-            address(this),
             address(testToken1),
             address(rewardTokenA),
             address(rewardTokenB),

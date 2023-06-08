@@ -52,7 +52,6 @@ contract StakingRewardsFactoryTest is Test {
         hevm.warp(block.timestamp + 1 minutes);
 
         stakingDualRewardsFactory.deploy(
-            address(this),
             _stakingToken,
             _rewardTokenA,
             _rewardTokenB,
@@ -87,7 +86,6 @@ contract StakingRewardsFactoryTest is Test {
         hevm.recordLogs();
 
         stakingDualRewardsFactory.deploy(
-            address(this),
             address(stakingToken),
             address(rewardTokenA),
             address(rewardTokenB),
@@ -118,7 +116,6 @@ contract StakingRewardsFactoryTest is Test {
         hevm.warp(block.timestamp + 10);
         hevm.recordLogs();
         stakingDualRewardsFactory.deploy(
-            address(this),
             address(stakingToken),
             address(rewardTokenA),
             address(rewardTokenB),
@@ -163,7 +160,6 @@ contract StakingRewardsFactoryTest is Test {
         hevm.recordLogs();
 
         stakingDualRewardsFactory.deploy(
-            address(this),
             address(stakingToken),
             address(rewardTokenA),
             address(rewardTokenB),
@@ -195,7 +191,6 @@ contract StakingRewardsFactoryTest is Test {
 
         hevm.expectRevert(bytes("SRT"));
         stakingDualRewardsFactory.deploy(
-            address(this),
             address(stakingToken),
             address(rewardTokenA),
             address(rewardTokenA),
@@ -205,7 +200,6 @@ contract StakingRewardsFactoryTest is Test {
         );
 
         stakingDualRewardsFactory.deploy(
-            address(this),
             address(stakingToken),
             address(rewardTokenA),
             address(rewardTokenB),
@@ -215,7 +209,6 @@ contract StakingRewardsFactoryTest is Test {
         );
         hevm.expectRevert(bytes("AD"));
         stakingDualRewardsFactory.deploy(
-            address(this),
             address(stakingToken),
             address(rewardTokenA),
             address(rewardTokenB),
@@ -226,7 +219,6 @@ contract StakingRewardsFactoryTest is Test {
 
         hevm.expectRevert(bytes("IRT(s)"));
         stakingDualRewardsFactory.deploy(
-            address(this),
             address(stakingToken),
             address(0),
             address(rewardTokenB),
@@ -237,7 +229,6 @@ contract StakingRewardsFactoryTest is Test {
 
         hevm.expectRevert(bytes("IRT(s)"));
         stakingDualRewardsFactory.deploy(
-            address(this),
             address(stakingToken),
             address(rewardTokenA),
             address(0),
@@ -250,7 +241,6 @@ contract StakingRewardsFactoryTest is Test {
     function tesEmitDeployEvent() public {
         hevm.recordLogs();
         stakingDualRewardsFactory.deploy(
-            address(this),
             address(stakingToken),
             address(rewardTokenA),
             address(rewardTokenB),
@@ -433,7 +423,6 @@ contract StakingRewardsFactoryTest is Test {
         for (uint256 i = 0; i < 5; i++) {
             stakingToken = new MockERC20("Token Test Staking", "TTS");
             stakingDualRewardsFactory.deploy(
-                address(this),
                 address(stakingToken),
                 address(rewardTokenA),
                 address(rewardTokenB),
@@ -470,7 +459,6 @@ contract StakingRewardsFactoryTest is Test {
     function testCannotNotifyRewardWithoutAmounts() public {
         stakingToken = new MockERC20("Token Test Staking", "TTS");
         stakingDualRewardsFactory.deploy(
-            address(this),
             address(stakingToken),
             address(rewardTokenA),
             address(rewardTokenB),
