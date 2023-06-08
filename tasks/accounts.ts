@@ -36,8 +36,9 @@ task("deploy-stakingFactory", "Deploy staking factory contract").setAction(
     console.log("  at", signer.address);
     console.log("  ETH", formatEther(await signer.getBalance()));
 
+    const genesisTime = Number((Date.now() / 1000 + 900).toFixed());
     const args = {
-      time: 1685002830,
+      time: genesisTime,
     };
 
     console.log("Network");
@@ -72,8 +73,9 @@ task("deploy-stakingDualFactory", "Deploy staking factory contract").setAction(
     console.log("  at", signer.address);
     console.log("  ETH", formatEther(await signer.getBalance()));
 
+    const genesisTime = Number((Date.now() / 1000 + 900).toFixed());
     const args = {
-      time: 1685002830,
+      time: genesisTime,
     };
 
     console.log("Network");
@@ -102,13 +104,14 @@ task("deploy-stakingDualFactory", "Deploy staking factory contract").setAction(
 task("verify-stakingvault", "verifying staking vault contract").setAction(
   async (cliArgs, { ethers, run, network }) => {
     const args = {
-      _rewardsDistribution: "0x6900c436CF15D6D0016dC71A5CE5ADe843031eFd",
-      _rewardsToken: "0xaa518ed3d2160ddd8ca1d5b3173c864a00c6da7c",
-      _stakingToken: "0x247563bffe3eae0ea6662a0822388453dcf79c5c",
+      _owner: "0x1e3881227010c8dcdfa2f11833d3d70a00893f94",
+      _rewardsDistribution: "0x7B6763729B8af1DA39AFA5Ad054D73472cAfF599",
+      _rewardsToken: "0x582DaEF1F36D6009f64b74519cFD612a8467Be18",
+      _stakingToken: "0x1749af477bb94cf84c942f0db69f4213959e0b12",
     };
 
     await run("verify:verify", {
-      address: "0x963ab17eff2708b2c132348dc6e42d2ac8e9b3b4",
+      address: "0x73d37578a3c8cf354918F93124bf0bcd3419Ca34",
       constructorArguments: Object.values(args),
     });
   }
