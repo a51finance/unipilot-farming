@@ -11,12 +11,12 @@
     "test-mainnet": "forge test --fork-url $ETH_RPC_URL -vv",
     "logtest": "clear && forge test -vvvv",
     "deploy-stakingRewardsFactory": "./bin/deployStakingRewardsFactory.sh",
-    "deploy-stakingFactory":"hardhat deploy-stakingFactory --network",
-    "deploy-stakingDualFactory":"hardhat deploy-stakingDualFactory --network",
+    "deploy-stakingFactory": "hardhat deploy-stakingFactory --network",
+    "deploy-stakingDualFactory": "hardhat deploy-stakingDualFactory --network",
     "deploy-stakingDualRewardsFactory": "./bin/deployStakingDualRewardsFactory.sh",
     "verify-vault": "hardhat verify-vault --network",
-    "verify-stakingvault":"hardhat verify-stakingvault --network",
-    "verify-stakingvaultDual":"hardhat verify-stakingvaultDual --network"
+    "verify-stakingvault": "hardhat verify-stakingvault --network",
+    "verify-stakingvaultDual": "hardhat verify-stakingvaultDual --network"
   },
   "author": "Devan Non <devanon@chainstride.capital>",
   "license": "Apache-2.0",
@@ -39,8 +39,11 @@
     "typescript": "^4.6.4"
   },
   "dependencies": {
+    "@matterlabs/hardhat-zksync-deploy": "^0.6.3",
+    "@matterlabs/hardhat-zksync-solc": "^0.4.1",
     "@nomiclabs/hardhat-etherscan": "^3.1.7",
     "dotenv": "^16.0.3",
-    "solidity-coverage": "^0.8.2"
+    "solidity-coverage": "^0.8.2",
+    "zksync-web3": "^0.14.3"
   }
 }

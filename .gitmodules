@@ -9,3 +9,6 @@
 	path = lib/openzeppelin-contracts
 	url = https://github.com/OpenZeppelin/openzeppelin-contracts
 	branch = v4.8.0
+[submodule "lib/foundry-zksync-era"]
+	path = lib/foundry-zksync-era
+	url = https://github.com/omurovec/foundry-zksync-era

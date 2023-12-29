@@ -57,11 +57,14 @@ function createTestnetConfig(
   const url: string =
     network == "mumbai"
       ? "https://polygon-mumbai.g.alchemy.com/v2/0zYR0X60apvZglZAMDnA7dHmE7lG4amL"
-      : "https://rpc.ankr.com/dogechain";
-  // "https://zkevm-rpc.com";
+      : // : "https://polygon-mainnet.g.alchemy.com/v2/g2JAXug5sBd7l8VuSlEYvUB3PysaxSFx";
+        // "https://rpc.ankr.com/dogechain";
+        // "https://zkevm-rpc.com";
+        "https://eth.llamarpc.com";
+  // "https://ethereum-goerli.publicnode.com";
   // : "https://polygon-mainnet.g.alchemy.com/v2/g2JAXug5sBd7l8VuSlEYvUB3PysaxSFx";
   return {
-    accounts: [`${process.env.PK_POLY}`, `${process.env.PK2}`],
+    accounts: [`${process.env.PKEY}`, `${process.env.PKEY}`],
     chainId: chainIds[network],
     url,
   };
@@ -128,13 +131,16 @@ const config: HardhatUserConfig = {
   },
   etherscan: {
     apiKey: {
+      goerli: "GSWUYPSZGBKJ168A2M78TF7VUA97AP6G22",
+      mainnet: "GSWUYPSZGBKJ168A2M78TF7VUA97AP6G22",
+      polygon: "U454CGF88K6BJYPTMYP447Q2VFUMT6QHZ9",
       polygonMumbai: "U454CGF88K6BJYPTMYP447Q2VFUMT6QHZ9",
-      zkEVM: "2RQMY1GRQD38KP8DQX8KEP9DDEFKVK38HJ",
+      zkevm: "2RQMY1GRQD38KP8DQX8KEP9DDEFKVK38HJ",
       dogechain: "B9YRT6VCBUX8IWEARQQPW5C4VX89ISEXFC",
     },
     customChains: [
       {
-        network: "zkEVM",
+        network: "zkevm",
         chainId: 1101,
         urls: {
           apiURL: "https://api-zkevm.polygonscan.com/api",
